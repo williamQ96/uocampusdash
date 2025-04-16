@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 3f7069efeb2a6894593fc8390c015dfe
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 313963
+  packageName: Chibi Character
+  packageVersion: 1.0
+  assetPath: Assets/ChibiCharacter/Example/Game/Scripts/InteractableObject.cs
+  uploadId: 740552

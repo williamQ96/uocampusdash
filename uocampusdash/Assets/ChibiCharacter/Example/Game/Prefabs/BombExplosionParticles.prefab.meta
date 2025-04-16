@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 746c325546fec3f41bd2372364bf8096
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 313963
+  packageName: Chibi Character
+  packageVersion: 1.0
+  assetPath: Assets/ChibiCharacter/Example/Game/Prefabs/BombExplosionParticles.prefab
+  uploadId: 740552
