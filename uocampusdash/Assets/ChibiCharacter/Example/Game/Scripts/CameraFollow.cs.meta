@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: fac12c8d4cbba314287d12595a32bd51
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 313963
+  packageName: Chibi Character
+  packageVersion: 1.0
+  assetPath: Assets/ChibiCharacter/Example/Game/Scripts/CameraFollow.cs
+  uploadId: 740552

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 339cdce4a41076341b353c729bf54642
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 313963
+  packageName: Chibi Character
+  packageVersion: 1.0
+  assetPath: Assets/ChibiCharacter/Example/Game/Materials/NPC2Main.mat
+  uploadId: 740552

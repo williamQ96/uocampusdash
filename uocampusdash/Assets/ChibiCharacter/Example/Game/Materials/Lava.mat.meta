@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 173d0b77ceace894ba54fc864d9b63a0
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 313963
+  packageName: Chibi Character
+  packageVersion: 1.0
+  assetPath: Assets/ChibiCharacter/Example/Game/Materials/Lava.mat
+  uploadId: 740552

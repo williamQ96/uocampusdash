@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 930ca96e089fb01498903bdf4a0c41de
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 313963
+  packageName: Chibi Character
+  packageVersion: 1.0
+  assetPath: Assets/ChibiCharacter/Example/Game/Materials/Box.mat
+  uploadId: 740552
