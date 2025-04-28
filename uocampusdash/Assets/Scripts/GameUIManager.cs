@@ -1,10 +1,14 @@
 using UnityEngine;
 using UnityEngine.UI; // 加载Button组件
+using UnityEngine.SceneManagement; 
+using TMPro; 
 
 public class GameUIManager : MonoBehaviour
 {
     public GameObject[] menuButtons; // 把所有的按钮放到数组里，比如第一个是"Start"，第二个是"Exit"
     private int selectedIndex = 0; // 当前选中的按钮索引
+    public TextMeshProUGUI exitText;
+    public GameObject storePanel;
 
     void Start()
     {
@@ -40,11 +44,24 @@ public class GameUIManager : MonoBehaviour
                         button.SetActive(false);
                     }
                     FindObjectOfType<TimerManager>().StartTimer();
+                    FindObjectOfType<MissionManager>().StartMission();
                 }
                 else if (selectedIndex == 1)
                 {
-                    // 第二个按钮，暂时不做任何事情
-                    Debug.Log("Second button selected, no action yet.");
+                    Debug.Log("Store selected.");
+
+                    if (storePanel != null)
+                    {
+                        storePanel.SetActive(true); // 打开Store窗口
+                        foreach (var button in menuButtons)
+                        {
+                            button.SetActive(false); // 隐藏Start/Store/Exit按钮
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("StorePanel is not assigned!");
+                    }
                 }
             }
         }
@@ -64,4 +81,33 @@ public class GameUIManager : MonoBehaviour
             }
         }
     }
+
+    public void ShowMainMenu()
+{
+    StarterAssets.StarterAssetsInputs.inputEnabled = false; // 禁用玩家移动
+    selectedIndex = 0; // 选中Start
+    foreach (var button in menuButtons)
+    {
+        button.SetActive(true); // 把Start/Store/Exit按钮重新显示出来
+    }
+    UpdateButtonVisuals(); // 刷新选中高亮
+}
+
+public void ExitGame()
+{
+    Debug.Log("[GameUIManager] ExitGame called.");
+
+#if UNITY_WEBGL
+    // WebGL版本无法直接退出，显示感谢文本
+    if (exitText != null)
+    {
+        exitText.gameObject.SetActive(true);
+        exitText.text = "Thanks for playing!";
+    }
+#else
+    // 其他版本可以直接退出
+    Application.Quit();
+#endif
+}
+
 }
