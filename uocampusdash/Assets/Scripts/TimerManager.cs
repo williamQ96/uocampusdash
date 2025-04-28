@@ -46,5 +46,15 @@ public class TimerManager : MonoBehaviour
         timerText.gameObject.SetActive(false);
         gameOverText.gameObject.SetActive(true);
         gameOverText.text = "Game Over!";
+
+        FindObjectOfType<MissionManager>().ShowCompletePanel();
     }
+    public void ResetTimer()
+{
+    remainingTime = timeLimit;
+    timerRunning = false;
+    timerText.gameObject.SetActive(false);
+    gameOverText.gameObject.SetActive(false);
+    enabled = true; // 重新激活Timer脚本
+}
 }
