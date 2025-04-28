@@ -8,6 +8,7 @@ namespace StarterAssets
 	public class StarterAssetsInputs : MonoBehaviour
 	{
 		[Header("Character Input Values")]
+		public static bool inputEnabled = false;
 		public Vector2 move;
 		public Vector2 look;
 		public bool jump;
@@ -23,11 +24,13 @@ namespace StarterAssets
 #if ENABLE_INPUT_SYSTEM
 		public void OnMove(InputValue value)
 		{
+			if (!inputEnabled) return;
 			MoveInput(value.Get<Vector2>());
 		}
 
 		public void OnLook(InputValue value)
 		{
+			if (!inputEnabled) return;
 			if(cursorInputForLook)
 			{
 				LookInput(value.Get<Vector2>());
@@ -36,11 +39,13 @@ namespace StarterAssets
 
 		public void OnJump(InputValue value)
 		{
+			if (!inputEnabled) return;
 			JumpInput(value.isPressed);
 		}
 
 		public void OnSprint(InputValue value)
 		{
+			if (!inputEnabled) return;
 			SprintInput(value.isPressed);
 		}
 #endif
