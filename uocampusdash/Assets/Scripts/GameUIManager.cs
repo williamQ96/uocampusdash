@@ -3,70 +3,77 @@ using UnityEngine.UI; // 加载Button组件
 using UnityEngine.SceneManagement; 
 using TMPro; 
 
+/// <summary>
+/// Manages the main menu UI logic, including starting the game, opening the store and exit game.
+/// </summary>
+
 public class GameUIManager : MonoBehaviour
 {
-    public GameObject[] menuButtons; // 把所有的按钮放到数组里，比如第一个是"Start"，第二个是"Exit"
-    private int selectedIndex = 0; // 当前选中的按钮索引
+    public GameObject[] menuButtons; // All menu buttons ex: index 0 = "Start", index 1 = "Store", index 2 = "Exit"
     public TextMeshProUGUI exitText;
-    public GameObject storePanel;
+    public GameObject storePanel; // Reference to the store UI panel
+
+    private int selectedIndex = 0; // Index of currently selected menu item
 
     void Start()
     {
-        UpdateButtonVisuals();
+        UpdateButtonVisuals(); // Highlight the default selected button
     }
 
     void Update()
     {
+        // Only handle menu navigation when player input is disabled
         if (!StarterAssets.StarterAssetsInputs.inputEnabled)
         {
+            // Navigate up
             if (Input.GetKeyDown(KeyCode.UpArrow))
             {
-                selectedIndex--;
-                if (selectedIndex < 0) selectedIndex = menuButtons.Length - 1;
+                selectedIndex = (selectedIndex - 1 + menuButtons.Length) % menuButtons.Length;
                 UpdateButtonVisuals();
             }
+            // Navigate down
             else if (Input.GetKeyDown(KeyCode.DownArrow))
             {
-                selectedIndex++;
-                if (selectedIndex >= menuButtons.Length) selectedIndex = 0;
+                selectedIndex = (selectedIndex + 1) % menuButtons.Length;
                 UpdateButtonVisuals();
             }
+            // Confirm selection
             else if (Input.GetKeyDown(KeyCode.Return))
             {
                 Debug.Log("ENTER Pressed! Current selection: " + selectedIndex);
 
-                if (selectedIndex == 0)
+                switch (selectedIndex)
                 {
-                    // 第一个按钮，开始游戏
-                    StarterAssets.StarterAssetsInputs.inputEnabled = true;
-                    foreach (var button in menuButtons)
-                    {
-                        button.SetActive(false);
-                    }
-                    FindObjectOfType<TimerManager>().StartTimer();
-                    FindObjectOfType<MissionManager>().StartMission();
-                }
-                else if (selectedIndex == 1)
-                {
-                    Debug.Log("Store selected.");
+                    case 0: // Start Game
+                        StarterAssets.StarterAssetsInputs.inputEnabled = true;
 
-                    if (storePanel != null)
-                    {
-                        storePanel.SetActive(true); // 打开Store窗口
                         foreach (var button in menuButtons)
+                            button.SetActive(false); // Hide menu buttons
+
+                        FindObjectOfType<TimerManager>()?.StartTimer();
+                        FindObjectOfType<MissionManager>()?.StartMission();
+                        break;
+
+                    case 1: // Open Store
+                        Debug.Log("Store selected.");
+
+                        if (storePanel != null)
                         {
-                            button.SetActive(false); // 隐藏Start/Store/Exit按钮
+                            storePanel.SetActive(true); // Show store panel
+                            foreach (var button in menuButtons)
+                                button.SetActive(false); // Hide menu buttons
                         }
-                    }
-                    else
-                    {
-                        Debug.LogError("StorePanel is not assigned!");
-                    }
+                        else
+                        {
+                            Debug.LogError("StorePanel is not assigned in the inspector!");
+                        }
+                        break;
                 }
             }
         }
     }
 
+    // Updates the visual color of buttons based on current selection
     void UpdateButtonVisuals()
     {
         for (int i = 0; i < menuButtons.Length; i++)
@@ -75,38 +82,40 @@ public class GameUIManager : MonoBehaviour
             if (image != null)
             {
                 if (i == selectedIndex)
-                    image.color = Color.yellow; // 选中的按钮变黄色
+                    image.color = Color.yellow; // Selected button: YELLOW
                 else
-                    image.color = Color.white; // 其他按钮恢复白色
+                    image.color = Color.white; // Other buttons: WHITE
             }
         }
     }
 
-    public void ShowMainMenu()
+// Called to re-enable and show the main menu
+public void ShowMainMenu()
 {
-    StarterAssets.StarterAssetsInputs.inputEnabled = false; // 禁用玩家移动
-    selectedIndex = 0; // 选中Start
+    StarterAssets.StarterAssetsInputs.inputEnabled = false; // Prohibit player move
+    selectedIndex = 0; // When hit start
     foreach (var button in menuButtons)
     {
-        button.SetActive(true); // 把Start/Store/Exit按钮重新显示出来
+        button.SetActive(true); // Show the menu again
     }
-    UpdateButtonVisuals(); // 刷新选中高亮
+    UpdateButtonVisuals(); 
 }
 
+// Handles exiting the game/showing exit message 
 public void ExitGame()
 {
     Debug.Log("[GameUIManager] ExitGame called.");
 
 #if UNITY_WEBGL
-    // WebGL版本无法直接退出，显示感谢文本
+    // WebGL cannot quit app, so show thank-you message instead
     if (exitText != null)
     {
         exitText.gameObject.SetActive(true);
         exitText.text = "Thanks for playing!";
     }
 #else
-    // 其他版本可以直接退出
-    Application.Quit();
+    // Quit the application
+    Application.Quit(); 
 #endif
 }
 

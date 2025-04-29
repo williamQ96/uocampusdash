@@ -1,23 +1,29 @@
 using UnityEngine;
 using TMPro;
 
+/// <summary>
+/// Manages player credits and updates the credit UI.
+/// </summary>
+
 public class CreditManager : MonoBehaviour
 {
-    public static CreditManager Instance; // 单例模式，保证全局唯一
-    public int credits = 0; // 当前总Credits
-    public TextMeshProUGUI creditText; // 连接到UI上显示
+    public static CreditManager Instance; // Singleton instance to allow global access
+    public TextMeshProUGUI creditText; // Reference to the UI element that displays credits
+
+    public int credits = 0; // Current total credits
+    private int lastDisplayedCredits = -1; // Cache the last value preventing unnecessary updates
 
     void Awake()
     {
-        // 单例
+        // Initialize Singleton pattern
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // 切换场景也不会消失（虽然现在我们只有一个场景）
+            DontDestroyOnLoad(gameObject); // Persist across scenes, though we only have one scene now
         }
         else
         {
-            Destroy(gameObject); // 避免重复
+            Destroy(gameObject); // Destroy duplicates to enforce Singleton
         }
     }
 
@@ -29,14 +35,16 @@ public class CreditManager : MonoBehaviour
     public void AddCredits(int amount)
     {
         credits += amount;
-        UpdateCreditUI();
+        UpdateCreditUI(); // Initialize the credit display
     }
 
     public void UpdateCreditUI()
     {
-        if (creditText != null)
+        // Updates the credit UI text if there’s a change in value.
+        if (creditText != null && credits != lastDisplayedCredits)
         {
-            creditText.text = "Credits: " + credits.ToString();
+            creditText.text = $"Credits: {credits}";
+            lastDisplayedCredits = credits;
         }
     }
 
