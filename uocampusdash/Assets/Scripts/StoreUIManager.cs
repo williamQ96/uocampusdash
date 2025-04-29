@@ -1,17 +1,28 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Manages the player's navigation within the in-game store UI using the keyboard
+/// </summary>
+
 public class StoreUIManager : MonoBehaviour
 {
-    public GameObject[] storeButtons; // Upgrade, Menu
-    private int selectedIndex = 0;
+    public GameObject[] storeButtons; // Array of buttons in the store UI
+    private int selectedIndex = 0; // Currently selected button index
 
     void Start()
     {
-        UpdateButtonVisuals();
+        UpdateButtonVisuals(); // Initialize button visuals
     }
 
     void Update()
+    {
+        HandleNavigationInput(); // Check for up/down/enter input
+    }
+
+
+    // Handles user keyboard input
+    private void HandleNavigationInput()
     {
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
@@ -27,18 +38,24 @@ public class StoreUIManager : MonoBehaviour
         }
         else if (Input.GetKeyDown(KeyCode.Return))
         {
-            Debug.Log("ENTER Pressed! Store selection: " + selectedIndex);
-            if (selectedIndex == 0)
+            Debug.Log($"[StoreUIManager] ENTER pressed. Selected index: {selectedIndex}");
+
+            switch (selectedIndex)
             {
-                FindObjectOfType<StoreManager>().UpgradeSpeed();
-            }
-            else if (selectedIndex == 1)
-            {
-                FindObjectOfType<GameUIManager>().ShowMainMenu();
-                gameObject.SetActive(false); // 隐藏StorePanel
+                case 0:
+                    FindObjectOfType<StoreManager>().UpgradeSpeed();
+                    break;
+                case 1:
+                    FindObjectOfType<GameUIManager>().ShowMainMenu();
+                    gameObject.SetActive(false); // Hide the store panel
+                    break;
+                default:
+                    Debug.LogWarning("[StoreUIManager] Invalid button index.");
+                    break;
             }
         }
     }
+
 
     void UpdateButtonVisuals()
     {

@@ -1,23 +1,28 @@
 using UnityEngine;
 using TMPro;
 
+/// <summary>
+/// Manages mission flow: assigning target, tracking player progress, and handling mission completion.
+/// </summary>
+
 public class MissionManager : MonoBehaviour
 {
-    public GameObject player; // 拖你的玩家对象
-    public TextMeshProUGUI missionText; // 显示任务的UI
-    public GameObject missionCompletePanel; 
-    public float successDistance = 10f; // 任务成功的检测距离
-    private Transform targetBuilding; // 目标建筑物
-    private bool missionStarted = false;
+    public GameObject player; // Reference to the player GameObject
+    public TextMeshProUGUI missionText; // UI element to display mission target
+    public GameObject missionCompletePanel; // Panel to show on mission completion
+    public float successDistance = 10f; // Distance threshold for mission success
 
-    private BuildingName[] buildings; // 缓存建筑物列表
+    private Transform targetBuilding; // Mission target
+    private bool missionStarted = false; // Flag to track if mission is in progress
+
+    private BuildingName[] buildings; // Cached list of all buildings
 
     void Start()
     {
         buildings = FindObjectsOfType<BuildingName>();
-        missionText.text = "Reach: ???"; // 一开始显示问号
+        missionText.text = "Reach: ???"; // Default display
         missionText.gameObject.SetActive(true);
-        missionCompletePanel.SetActive(false); 
+        missionCompletePanel.SetActive(false); // Hide mission complete panel initially
     }
 
     void Update()
@@ -32,6 +37,7 @@ public class MissionManager : MonoBehaviour
         }
     }
 
+    // Starts a new mission by selecting random buildings for spawn and target
     public void StartMission()
     {
         if (buildings.Length < 2)
@@ -43,71 +49,81 @@ public class MissionManager : MonoBehaviour
         int spawnIndex = Random.Range(0, buildings.Length);
         int targetIndex = Random.Range(0, buildings.Length);
 
-        // 保证出生点和目标不一样
+        // Ensure target and spawn buildings are different
         while (targetIndex == spawnIndex)
         {
             targetIndex = Random.Range(0, buildings.Length);
         }
 
-        // 生成出生点
+        // Generate a random spawn position offset from the spawn building
         Vector3[] directions = new Vector3[]
         {
-            Vector3.forward,  // 向前
-            Vector3.back,     // 向后
-            Vector3.left,     // 向左
-            Vector3.right     // 向右
+            Vector3.forward,  
+            Vector3.back,     
+            Vector3.left,     
+            Vector3.right  
         };
 
         Vector3 randomDirection = directions[Random.Range(0, directions.Length)];
-        Vector3 spawnPos = buildings[spawnIndex].transform.position + randomDirection * 10f; // 推远10米
-        spawnPos.y = 0; // 保证出生在地面上
+        Vector3 spawnPos = buildings[spawnIndex].transform.position + randomDirection * 10f; 
+        spawnPos.y = 0; // Ensure spawn is on ground level
         player.transform.position = spawnPos;
 
         Debug.Log($"[MissionManager] Player spawned near {buildings[spawnIndex].buildingName} at {spawnPos}");
 
-        // 设置任务目标
+        // Set the target
         targetBuilding = buildings[targetIndex].transform;
         missionText.text = "Reach: " + buildings[targetIndex].buildingName;
         missionText.gameObject.SetActive(true);
 
-        missionStarted = true; // 标记任务正式开始
+        missionStarted = true; 
     }
 
+    // Called when the player reaches the target
     void MissionComplete()
     {
         missionText.text = "Mission Complete!";
         targetBuilding = null;
-        FindObjectOfType<TimerManager>().enabled = false; // 停止计时（可选）
+        FindObjectOfType<TimerManager>().enabled = false; // Stop the timer
             missionCompletePanel.SetActive(true); 
-        CreditManager.Instance.AddCredits(100); // 奖励100个Credits
+        CreditManager.Instance.AddCredits(100); // Add rewards
     }
+
+    //  Resets and restarts the mission
     public void RestartMission()
-{
-    Debug.Log("[MissionManager] RestartMission called.");
+    {
+        Debug.Log("[MissionManager] RestartMission called.");
 
-    missionCompletePanel.SetActive(false); // 隐藏胜利面板
-    missionText.text = "Reach: ???"; // 重新变成问号
+        missionCompletePanel.SetActive(false);  //Hide mission complete panel initially
+        missionText.text = "Reach: ???"; 
 
-    missionStarted = false; // 任务状态清零
-    targetBuilding = null; // 清空上一个目标
+        missionStarted = false; 
+        targetBuilding = null; 
 
-    TimerManager timer = FindObjectOfType<TimerManager>();
-    timer.ResetTimer(); // 重置Timer
-    timer.StartTimer(); // 重新开始倒计时
-    StartMission();     // 重新开始任务
-}
+        TimerManager timer = FindObjectOfType<TimerManager>();
+        timer.ResetTimer(); 
+        timer.StartTimer(); 
+        StartMission();     // Restart another mission
+    }
 
-public void ShowCompletePanel()
-{
-    missionCompletePanel.SetActive(true);
-}
+    // Shows the mission complete panel
+    public void ShowCompletePanel()
+    {
+        missionCompletePanel.SetActive(true);
+    }
 
-public void BackToMainMenu()
-{
-    Debug.Log("[MissionManager] Returning to Main Menu.");
+    // Returns to the main menu and hides mission UI.
+    public void BackToMainMenu()
+    {
+        Debug.Log("[MissionManager] Returning to Main Menu.");
 
-    missionCompletePanel.SetActive(false); // 关掉CompletePanel
-    missionText.gameObject.SetActive(false); // 隐藏Mission提示
-    FindObjectOfType<GameUIManager>().ShowMainMenu(); // 呼叫GameUIManager显示菜单
-}
+        missionCompletePanel.SetActive(false);
+        missionText.gameObject.SetActive(false);
+
+        GameUIManager uiManager = FindObjectOfType<GameUIManager>();
+        if (uiManager != null)
+        {
+            uiManager.ShowMainMenu();
+        }
+    }
 }
