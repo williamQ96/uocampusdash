@@ -6,7 +6,7 @@ public class MissionManager : MonoBehaviour
     public GameObject player; // 拖你的玩家对象
     public TextMeshProUGUI missionText; // 显示任务的UI
     public GameObject missionCompletePanel; 
-    public float successDistance = 10f; // 任务成功的检测距离
+    public float successDistance = 20f; // 任务成功的检测距离
     private Transform targetBuilding; // 目标建筑物
     private bool missionStarted = false;
 

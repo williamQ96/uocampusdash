@@ -44,4 +44,10 @@ public class CreditManager : MonoBehaviour
     {
         UpdateCreditUI();
     }
+
+        public int GetCredits()
+    {
+        return credits;
+    }
+
 }

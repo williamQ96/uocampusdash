@@ -74,6 +74,8 @@ namespace StarterAssets
 
         [Tooltip("For locking the camera position on all axis")]
         public bool LockCameraPosition = false;
+        public float sprintLimit = 10f; // Sprint duration limit in seconds
+        private float sprintTimeLeft;
 
         // cinemachine
         private float _cinemachineTargetYaw;
@@ -150,6 +152,7 @@ namespace StarterAssets
             // reset our timeouts on start
             _jumpTimeoutDelta = JumpTimeout;
             _fallTimeoutDelta = FallTimeout;
+            sprintTimeLeft = sprintLimit;
         }
 
         private void Update()
@@ -159,13 +162,32 @@ namespace StarterAssets
             JumpAndGravity();
             GroundedCheck();
             Move();
+            HandleSprinting();
         }
 
         private void LateUpdate()
         {
             CameraRotation();
         }
+        private void HandleSprinting()
+        {
+            if (Input.GetKey(KeyCode.LeftShift) && sprintTimeLeft > 0)
+            {
+                // Sprinting logic
+                transform.Translate(Vector3.forward * SprintSpeed * Time.deltaTime);
+                sprintTimeLeft -= Time.deltaTime; // Decrease sprint time
 
+                if (sprintTimeLeft <= 0)
+                {
+                    Debug.Log("Sprint limit reached!");
+                }
+            }
+            else
+            {
+                // Regenerate sprint time when not sprinting
+                sprintTimeLeft = Mathf.Min(sprintTimeLeft + Time.deltaTime, sprintLimit);
+            }
+        }
         private void AssignAnimationIDs()
         {
             _animIDSpeed = Animator.StringToHash("Speed");

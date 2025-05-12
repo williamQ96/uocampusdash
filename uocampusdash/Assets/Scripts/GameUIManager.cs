@@ -75,12 +75,22 @@ public class GameUIManager : MonoBehaviour
     void AssignButtonClicks()
     {
         // Assign the button click events programmatically
-        if (menuButtons.Length >= 3)
+        for (int i = 0; i < menuButtons.Length; i++)
         {
-            menuButtons[0].GetComponent<Button>().onClick.AddListener(StartGame);
-            menuButtons[1].GetComponent<Button>().onClick.AddListener(OpenStore);
-            menuButtons[2].GetComponent<Button>().onClick.AddListener(ExitGame);
+            Button button = menuButtons[i].GetComponent<Button>();
+            if (button != null)
+            {
+                int index = i; // Capture the index for closure
+                button.onClick.AddListener(() => OnButtonClicked(index));
+            }
         }
+    }
+
+    void OnButtonClicked(int index)
+    {
+        selectedIndex = index;
+        UpdateButtonVisuals();
+        PerformSelectedAction();
     }
 
     public void StartGame()

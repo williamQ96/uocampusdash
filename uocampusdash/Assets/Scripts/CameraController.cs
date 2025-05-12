@@ -9,10 +9,6 @@ public class CameraController : MonoBehaviour
     public float zoomSpeed = 2f;     // Speed of zooming in/out
     public float minZoom = 2f;       // Minimum camera distance
     public float maxZoom = 15f;      // Maximum camera distance
-    
-    // Default Camera Settings
-    public float defaultAngle = 15f;  // Default angle of the camera
-    public float defaultDistance = 5f; // Default distance from the player
 
     private Vector3 cameraOffset;
     private float currentZoom;
@@ -21,11 +17,7 @@ public class CameraController : MonoBehaviour
 
     void Start()
     {
-        // Set default camera distance and angle
-        currentZoom = defaultDistance;
-        playerCameraRoot.localRotation = Quaternion.Euler(defaultAngle, 0, 0);
-        
-        // Set camera to default position
+        currentZoom = cameraDistance;
         cameraOffset = new Vector3(0, 0, -currentZoom);
         UpdateCameraPosition();
     }
@@ -53,6 +45,8 @@ public class CameraController : MonoBehaviour
         if (Input.GetMouseButtonUp(0))
         {
             isLeftMouseHeld = false;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
 
         // Right Mouse Button - Rotate Camera + Player Direction
@@ -65,23 +59,18 @@ public class CameraController : MonoBehaviour
         if (Input.GetMouseButtonUp(1))
         {
             isRightMouseHeld = false;
-        }
-
-        // Only unlock cursor if neither button is held
-        if (!isLeftMouseHeld && !isRightMouseHeld)
-        {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
 
-        // Rotate camera based on mouse movement
-        if (isLeftMouseHeld || isRightMouseHeld)
+        // Only rotate camera or player if a mouse button is held
+        if ((isLeftMouseHeld || isRightMouseHeld) && (Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0))
         {
             float mouseX = Input.GetAxis("Mouse X") * cameraSensitivity;
             float mouseY = Input.GetAxis("Mouse Y") * cameraSensitivity;
 
-            // Rotate camera pivot (view) without changing player direction
-            playerCameraRoot.Rotate(-mouseY, 0, 0);
+            // Rotate camera view (up/down) without changing player direction
+            playerCameraRoot.Rotate(-mouseY, 0, 0); // Vertical view
 
             // Clamp vertical view angle to prevent flipping
             playerCameraRoot.localRotation = Quaternion.Euler(
@@ -90,9 +79,10 @@ public class CameraController : MonoBehaviour
                 0
             );
 
-            // If right button, also rotate player direction
+            // If right mouse is held, change player direction
             if (isRightMouseHeld)
             {
+                // Directly rotate player to match camera view direction
                 player.Rotate(0, mouseX, 0);
             }
         }
@@ -102,8 +92,7 @@ public class CameraController : MonoBehaviour
     {
         // Adjust camera position based on zoom
         cameraOffset = new Vector3(0, 0, -currentZoom);
-        Vector3 targetPosition = playerCameraRoot.position + playerCameraRoot.rotation * cameraOffset;
-        transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * 10);
+        transform.position = playerCameraRoot.position + playerCameraRoot.rotation * cameraOffset;
         transform.LookAt(playerCameraRoot.position);
     }
 }
