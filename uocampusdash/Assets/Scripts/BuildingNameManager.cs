@@ -31,21 +31,30 @@ public class BuildingNameManager : MonoBehaviour
         }
     }
 
-    void Update()
+void Update()
+{
+    foreach (var (building, nameUI) in trackedBuildings)
     {
-        foreach (var (building, nameUI) in trackedBuildings)
+        if (building == null) continue;
+
+        // Convert building world position to screen space
+        Vector3 screenPosition = mainCamera.WorldToScreenPoint(building.position + Vector3.up * 5f);
+
+        // Set UI position on screen
+        nameUI.transform.position = screenPosition;
+
+        // Show or hide based on distance and visibility
+        float distance = Vector3.Distance(mainCamera.transform.position, building.position);
+
+        // Optionally: hide if behind the camera
+        if (screenPosition.z < 0)
         {
-            if (building == null) continue;
-
-            // Convert world position to screen position 
-            Vector3 screenPosition = mainCamera.WorldToScreenPoint(building.position + Vector3.up * 5f);
-            nameUI.transform.position = screenPosition;
-
-            // Calculate distance from camera to building
-            float distance = Vector3.Distance(mainCamera.transform.position, building.position);
-
-            // Show or hide UI label based on distance
+            nameUI.SetActive(false);
+        }
+        else
+        {
             nameUI.SetActive(distance <= maxVisibleDistance);
         }
     }
+}
 }
