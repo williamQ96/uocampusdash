@@ -16921,7 +16921,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   menuButtons:
   - {fileID: 225646055}
-  - {fileID: 0}
   - {fileID: 1199359817}
   exitText: {fileID: 188300795}
 --- !u!114 &1290625904
@@ -16950,7 +16949,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainCamera: {fileID: 115587632}
-  nameUIPrefab: {fileID: 0}
+  nameUIPrefab: {fileID: 5911050549756406583, guid: da7427e5f5a8b2441bd3d90f56400ffe, type: 3}
   maxVisibleDistance: 50
 --- !u!1 &1290786417
 GameObject:
