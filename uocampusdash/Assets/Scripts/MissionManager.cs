@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using System.Linq;
 
 public class MissionManager : MonoBehaviour
 {
@@ -9,10 +10,12 @@ public class MissionManager : MonoBehaviour
     public TextMeshProUGUI missionText;
     public GameObject missionCompletePanel;
     public TextMeshProUGUI levelText;
+
     // Distance threshold for completing a mission
     public float successDistance = 10f;
     // Minimum distance between spawn and target
     public float minDistanceFromTarget = 20f;
+
     private Transform targetBuilding;
     private bool missionStarted = false;
     private int currentLevel = 0;
@@ -24,8 +27,10 @@ public class MissionManager : MonoBehaviour
 
     void Start()
     {
-        // Find all buildings in the scene
-        buildings = FindObjectsOfType<BuildingName>();
+        // Filter out empty name buildings
+        buildings = FindObjectsOfType<BuildingName>()
+                    .Where(b => !string.IsNullOrWhiteSpace(b.buildingName))
+                    .ToArray();
 
         // Initialize level display
         if (levelText != null)
@@ -62,9 +67,7 @@ public class MissionManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Starts a new mission by selecting a valid spawn and target building.
-    /// </summary>
+
     public void StartMission()
     {
         Debug.Log("[MissionManager] StartMission() called");
@@ -110,23 +113,27 @@ public class MissionManager : MonoBehaviour
             PlayerReturnPosition.HasTeleportedIntoRoom = false;
         }
 
-        // Set mission target
-        targetBuilding = buildings[targetIndex].transform;
 
-        // Update UI with target name
+
+        // Set mission target
+        // targetBuilding = buildings[targetIndex].transform;
+        var buildingComponent = buildings[targetIndex];
+        string buildingName = string.IsNullOrWhiteSpace(buildingComponent.buildingName)
+                              ? "???"
+                              : buildingComponent.buildingName;
+
+        targetBuilding = buildingComponent.transform;
+
         if (missionText != null)
         {
-            string buildingName = buildings[targetIndex].buildingName;
-            missionText.text = !string.IsNullOrEmpty(buildingName) ? "Reach: " + buildingName : "Reach: ???";
+            missionText.text = "Reach: " + buildingName;
             missionText.gameObject.SetActive(true);
         }
 
         missionStarted = true;
     }
 
-    /// <summary>
-    /// Called when the player reaches the target building.
-    /// </summary>
+    
     private void OnMissionSuccess()
     {
         missionStarted = false;
@@ -144,9 +151,7 @@ public class MissionManager : MonoBehaviour
         MissionCompleteUIManager.Instance.ShowSuccessMenu();
     }
 
-    /// <summary>
-    /// Called when the mission fails (e.g., timeout).
-    /// </summary>
+
     public void OnMissionFailure()
     {
         missionStarted = false;
@@ -161,10 +166,7 @@ public class MissionManager : MonoBehaviour
         MissionCompleteUIManager.Instance.ShowFailureMenu();
     }
 
-    /// <summary>
-    /// Adds credits and increases level after mission success.
-    /// Called when user presses Continue.
-    /// </summary>
+ 
     public void AddCreditAndLevel()
     {
         CreditManager.Instance.AddCredits(100);
@@ -178,9 +180,6 @@ public class MissionManager : MonoBehaviour
     }
 
 
-    /// <summary>
-    /// Resets the mission UI and starts a new mission.
-    /// </summary>
     public void RestartMission()
     {
         Debug.Log("[MissionManager] RestartMission called.");
@@ -209,10 +208,6 @@ public class MissionManager : MonoBehaviour
     }
 
 
-
-    /// <summary>
-    /// Return to main menu and hide mission UI.
-    /// </summary>
     public void BackToMainMenu()
     {
         Debug.Log("[MissionManager] Returning to Main Menu.");
