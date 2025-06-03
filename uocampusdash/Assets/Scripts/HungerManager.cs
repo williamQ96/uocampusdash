@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 public class HungerManager : MonoBehaviour
 {
@@ -29,66 +30,75 @@ public class HungerManager : MonoBehaviour
 
     void Update()
     {
-        Debug.Log($"🔥 Update() Called. MissionManager.Instance = {MissionManager.Instance}");
-
-        if (MissionManager.Instance != null)
-        {
-            // Debug.Log($"✅ IsMissionActive: {MissionManager.Instance.IsMissionActive}");
-        }
 
         if (MissionManager.Instance != null && MissionManager.Instance.IsMissionActive)
         {
-        
-          float remainingTime = timerManager != null ? timerManager.GetRemainingTime() : 60f;
-          int level = MissionManager.Instance.GetCurrentLevel(); 
+            float remainingTime = timerManager != null ? timerManager.GetRemainingTime() : 60f;
+            int level = MissionManager.Instance.GetCurrentLevel();
 
-          // Linear interpolation
-          float baseRate = Mathf.Lerp(0.05f, 0.5f, level / 10f); // Level higher - hunger increases
+            // Linear interpolation: level 1 = slow hunger, level 10 = fast
+            float baseRate = Mathf.Lerp(0.05f, 0.5f, level / 10f);
+            float adjustedRate = baseRate * hungerReductionFactor;
 
-          float adjustedRate = baseRate * (FoodManager.Instance != null ? FoodManager.Instance.hungerReductionFactor : 1.0f);
+            currentHunger += adjustedRate * Time.deltaTime * 5f;
+            currentHunger = Mathf.Clamp(currentHunger, 0f, maxHunger);
 
-          currentHunger += adjustedRate * Time.deltaTime * 5f;
-          currentHunger = Mathf.Clamp(currentHunger, 0f, maxHunger);
+            Debug.Log($"📉 Current Hunger Speed Multiplier: x{hungerReductionFactor:F2}");
 
-          // Update the percentage
-          hungerSlider.value = currentHunger;
-          float percent = (currentHunger / maxHunger) * 100f;
-          if (hungerText != null)
-              hungerText.text = $"Hunger: {percent:F0}%";
+            if (hungerSlider != null)
+                hungerSlider.value = currentHunger;
 
-          // Game Over if hunger is max and mission is still active
-          if (currentHunger >= maxHunger && MissionManager.Instance.IsMissionActive)
-          {
-              Debug.Log("💀 Hunger reached 100%! Game Over due to starvation.");
+            float percent = (currentHunger / maxHunger) * 100f;
+            if (hungerText != null)
+                hungerText.text = $"Hunger: {percent:F0}%";
 
-            if (gameOverText != null)
+            if (currentHunger >= maxHunger && !hasTriggeredHungerGameOver)
             {
-                gameOverText.text = "You starved!";
-                gameOverText.gameObject.SetActive(true);
+                hasTriggeredHungerGameOver = true;
+                Debug.Log("💀 Hunger reached 100%! Game Over due to starvation.");
+
+                if (gameOverText != null)
+                {
+                    gameOverText.text = "You starved!";
+                    gameOverText.gameObject.SetActive(true);
+                }
+
+                if (timerManager != null)
+                    timerManager.enabled = false;
+
+                MissionManager.Instance.OnMissionFailure();
             }
-
-            var timer = FindObjectOfType<TimerManager>();
-            if (timer != null) timer.enabled = false;
-
-            MissionManager.Instance.OnMissionFailure();
-          }
         }
     }
 
     public void ResetHunger()
     {
         currentHunger = 0f;
-        hungerReductionFactor = 1.0f; // Reset to the normal hungry speed
+        hungerReductionFactor = 1.0f;
+        hasTriggeredHungerGameOver = false;
+
         if (hungerSlider != null)
             hungerSlider.value = currentHunger;
+
+        if (hungerText != null)
+            hungerText.text = "Hunger: 0%";
     }
 
-    // After eating food from restaurant
-    public void ReduceHungerRate(float factor)
+    // Called when food is consumed — temporary effect
+    public void ReduceHungerRateTemporary(float factor, float duration)
+    {
+        StopAllCoroutines(); // prevent stacking multiple effects
+        StartCoroutine(ReduceTemporarily(factor, duration));
+    }
+
+    private IEnumerator ReduceTemporarily(float factor, float duration)
     {
         hungerReductionFactor = factor;
-        Debug.Log($"✅ Hunger reduction factor set to {factor}");
+        Debug.Log($"🍽 Hunger speed temporarily reduced to x{factor} for {duration} sec");
+
+        yield return new WaitForSeconds(duration);
+
+        hungerReductionFactor = 1.0f;
+        Debug.Log("🔁 Hunger speed reset to normal (x1.0)");
     }
-
-
 }

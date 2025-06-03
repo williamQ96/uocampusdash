@@ -1,32 +1,34 @@
 using UnityEngine;
 using TMPro;
+using System.Collections;
 
 public class FoodMenuUI : MonoBehaviour
 {
-    public TextMeshProUGUI[] menuItems;  // Assign 3 items in Inspector
-    private int currentIndex = 0;
-
+    public TextMeshProUGUI[] menuItems;  // Assign: Burgers, Fries, Drinks
     public HungerManager hungerManager;
     public CreditManager creditManager;
     public GameObject menuPanel;
+    public TextMeshProUGUI feedbackText; // Assign in Inspector (should NOT be under menuPanel)
 
-    private float[] hungerReduction = { 0.5f, 0.25f, 0.15f };  // Burger, Fries, Drinks
+    private int currentIndex = 0;
+    private bool menuActive = false;
+
+    private float[] hungerReduction = { 0.5f, 0.75f, 0.85f }; // Burger, Fries, Drinks → speed multipliers
     private int[] prices = { 150, 100, 50 };
 
-    private bool menuActive = false;
-    private float menuTimer = 0f;
-    private float delayBeforeShow = 1f;
+    private float reductionDuration = 15f; 
 
     void Start()
     {
-        // SetMenuActive(false);  // hide on start
+        HideMenu();
+        if (feedbackText != null)
+            feedbackText.text = "";  // Keep it active, just empty text
     }
 
     void Update()
     {
         if (!menuActive) return;
 
-        // Navigate left/right
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             currentIndex = (currentIndex - 1 + menuItems.Length) % menuItems.Length;
@@ -37,33 +39,15 @@ public class FoodMenuUI : MonoBehaviour
             currentIndex = (currentIndex + 1) % menuItems.Length;
             UpdateHighlight();
         }
-
-        // Confirm selection
-        if (Input.GetKeyDown(KeyCode.Return))
+        else if (Input.GetKeyDown(KeyCode.Return))
         {
             TryPurchase(currentIndex);
         }
     }
 
-    public void TriggerMenu()
-    {
-        menuTimer = 0f;
-        Debug.Log("⏳ TriggerMenu called - will show menu in 1s");
-        Invoke(nameof(EnableMenu), delayBeforeShow);
-    }
-
-    private void EnableMenu()
-    {
-        Debug.Log("🍔 Food menu is now being shown!");
-        SetMenuActive(true);
-        UpdateHighlight();
-    }
-
-
     private void SetMenuActive(bool active)
     {
         menuActive = active;
-
         if (menuPanel != null)
             menuPanel.SetActive(active);
 
@@ -71,6 +55,21 @@ public class FoodMenuUI : MonoBehaviour
             item.gameObject.SetActive(active);
     }
 
+    public void ShowMenu()
+    {
+        SetMenuActive(true);
+        currentIndex = 0;
+        UpdateHighlight();
+
+        if (feedbackText != null)
+            feedbackText.text = "";  // clear feedback when menu shows
+    }
+
+    public void HideMenu()
+    {
+        SetMenuActive(false);
+        // Keep feedbackText visible
+    }
 
     private void UpdateHighlight()
     {
@@ -82,58 +81,70 @@ public class FoodMenuUI : MonoBehaviour
 
     private void TryPurchase(int index)
     {
-        if (creditManager.credits >= prices[index])
-        {
-            creditManager.credits -= prices[index];
-            hungerManager.ReduceHungerRate(hungerReduction[index]);
-            creditManager.UpdateCreditUI();
-            SetMenuActive(false); 
-            Debug.Log($"✅ Bought {menuItems[index].text}!");
-        }
-        else
+        int price = prices[index];
+        float reductionFactor = hungerReduction[index];
+
+        if (creditManager.credits < price)
         {
             Debug.Log("❌ Not enough credits.");
+            if (feedbackText != null)
+            {
+                feedbackText.text = $"Not enough credits for {menuItems[index].text}!";
+                feedbackText.gameObject.SetActive(true);
+            }
+
+            HideMenu();
+            StartCoroutine(ReopenMenuAfterDelay());
+            return;
         }
-    }
 
+        // ✅ Purchase successful
+        creditManager.credits -= price;
+        creditManager.UpdateCreditUI();
 
-    public void ShowMenu()
-    {
-        Debug.Log("🍔 ShowMenu() called");
+        hungerManager.ReduceHungerRateTemporary(reductionFactor, reductionDuration);
 
-        menuActive = true;
-
-        if (menuPanel != null)
+        Debug.Log($"✅ Bought {menuItems[index].text}!");
+        if (feedbackText != null)
         {
-            menuPanel.SetActive(true);
-            Debug.Log("✅ menuPanel.SetActive(true)");
-        }
-        else
-        {
-            Debug.LogError("❌ menuPanel is NULL");
+            feedbackText.text = $"Bought {menuItems[index].text}!";
+            feedbackText.gameObject.SetActive(true);
         }
 
-        foreach (var item in menuItems)
-            item.gameObject.SetActive(true);
-
-        currentIndex = 0;
-        UpdateHighlight();
+        HideMenu(); 
+        StartCoroutine(ReopenMenuAfterSuccess());
     }
 
-
-    public void HideMenu()
+    private IEnumerator ReopenMenuAfterDelay()
     {
-        menuActive = false;
+        yield return new WaitForSeconds(3f);
 
-        if (menuPanel != null)
-            menuPanel.SetActive(false);
+        if (feedbackText != null)
+            feedbackText.text = "";
 
-        foreach (var item in menuItems)
-            item.gameObject.SetActive(false);
-
-        Debug.Log("❌ Menu hidden after exiting restaurant.");
+        ShowMenu();
     }
 
+    private IEnumerator HideFeedbackOnly()
+    {
+        yield return new WaitForSeconds(3f);
+        if (feedbackText != null)
+        {
+            feedbackText.text = "";
+            feedbackText.gameObject.SetActive(false);
+        }
+    }
 
+    private IEnumerator ReopenMenuAfterSuccess()
+    {
+        yield return new WaitForSeconds(2f);
 
+        if (feedbackText != null)
+        {
+            feedbackText.text = "";
+            feedbackText.gameObject.SetActive(false);
+        }
+
+        ShowMenu(); 
+    }
 }
