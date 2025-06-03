@@ -2,62 +2,82 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// Handles keyboard navigation and visual feedback for buttons on the "Mission Complete" screen.
-/// </summary>
 
 public class MissionCompleteUIManager : MonoBehaviour
 {
-    public Button[] buttons; // Buttons to control via keyboard 
-    private int selectedIndex = 0; // Current selected button index
+    public static MissionCompleteUIManager Instance;
 
-    void OnEnable()
+    public GameObject successMenu;
+    public GameObject failureMenu;
+
+    private Button[] currentButtons;
+    private int selectedIndex = 0;
+
+    void Awake()
     {
-        UpdateButtonVisuals();
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
     }
 
     void Update()
     {
-        // Navigate up
+        if (currentButtons == null || currentButtons.Length == 0) return;
+
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            selectedIndex = (selectedIndex - 1 + buttons.Length) % buttons.Length;
+            selectedIndex = (selectedIndex - 1 + currentButtons.Length) % currentButtons.Length;
             UpdateButtonVisuals();
         }
-        // Navigate down
         else if (Input.GetKeyDown(KeyCode.DownArrow))
         {
-            selectedIndex = (selectedIndex + 1) % buttons.Length;
+            selectedIndex = (selectedIndex + 1) % currentButtons.Length;
             UpdateButtonVisuals();
         }
-        // Select current button
         else if (Input.GetKeyDown(KeyCode.Return))
         {
-            if (selectedIndex >= 0 && selectedIndex < buttons.Length)
-            {
-                buttons[selectedIndex].onClick.Invoke(); // Simulate button click
-            }
+            currentButtons[selectedIndex].onClick.Invoke();
         }
-    }   
+    }
 
-    // Visually highlight the selected button and dim others
     void UpdateButtonVisuals()
     {
-        for (int i = 0; i < buttons.Length; i++)
+        for (int i = 0; i < currentButtons.Length; i++)
         {
-            TextMeshProUGUI text = buttons[i].GetComponentInChildren<TextMeshProUGUI>();
-
+            var text = currentButtons[i].GetComponentInChildren<TextMeshProUGUI>();
             if (text != null)
-            {
-                if (i == selectedIndex)
-                {
-                    text.color = Color.yellow; // Selected button: YELLOW
-                }
-                else
-                {
-                    text.color = Color.white; // Other buttons: WHITE
-                }
-            }
+                text.color = (i == selectedIndex) ? Color.yellow : Color.white;
         }
+    }
+
+    public void ShowSuccessMenu()
+    {
+        successMenu.SetActive(true);
+        failureMenu.SetActive(false);
+
+        currentButtons = successMenu.GetComponentsInChildren<Button>();
+        selectedIndex = 0;
+        UpdateButtonVisuals();
+        gameObject.SetActive(true);
+    }
+
+    public void ShowFailureMenu()
+    {
+        Debug.Log("[UI] Showing Success Menu ✅");
+        successMenu.SetActive(false);
+        failureMenu.SetActive(true);
+        currentButtons = failureMenu.GetComponentsInChildren<Button>();
+        selectedIndex = 0;
+        UpdateButtonVisuals();
+        gameObject.SetActive(true);
+    }
+
+    public void HideAllMenus()
+    {
+        successMenu.SetActive(false);
+        failureMenu.SetActive(false);
+        currentButtons = null;
+        gameObject.SetActive(false);
     }
 }

@@ -35,6 +35,11 @@ public class CreditManager : MonoBehaviour
     public void AddCredits(int amount)
     {
         credits += amount;
+        var missionManager = FindObjectOfType<MissionManager>();
+        if (missionManager != null)
+        {
+            missionManager.IncreaseLevel();
+        }
         UpdateCreditUI(); // Initialize the credit display
     }
 
