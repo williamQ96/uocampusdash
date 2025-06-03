@@ -65,7 +65,34 @@ public class SceneSwitcher : MonoBehaviour
     {
         if (player == null) return;
 
-        // Record outside position once
+        // If roomInterior is inactive, temporarily activate it to access its components
+        bool wasInactive = !roomInterior.activeSelf;
+        if (wasInactive)
+            roomInterior.SetActive(true);
+
+        // Try to get the RestaurantLayout component and fetch the spawn point
+        var layout = roomInterior.GetComponent<RestaurantLayout>();
+        if (layout != null)
+        {
+            roomSpawnPoint = layout.playerSpawnPoint;
+        }
+        else
+        {
+            Debug.LogWarning("❌ RestaurantLayout component not found on roomInterior.");
+        }
+
+        // If it was initially inactive, revert it back to inactive
+        if (wasInactive)
+            roomInterior.SetActive(false);
+
+        // If the spawn point is still missing, do not continue
+        if (roomSpawnPoint == null)
+        {
+            Debug.LogError("❌ roomSpawnPoint is null. Cannot teleport.");
+            return;
+        }
+
+        // Record the player's current (outside) position only once
         if (!PlayerReturnPosition.HasRecordedOutside)
         {
             PlayerReturnPosition.LastOutsidePosition = player.transform.position;
@@ -73,29 +100,29 @@ public class SceneSwitcher : MonoBehaviour
             PlayerReturnPosition.HasRecordedOutside = true;
         }
 
-        if (roomInterior != null) roomInterior.SetActive(true);
+        // Activate interior and deactivate exterior
+        roomInterior.SetActive(true);
         if (buildingExterior != null) buildingExterior.SetActive(false);
 
-        // Move to interior
-        if (roomSpawnPoint != null)
+        // Move player to the spawn point inside the restaurant
+        Vector3 targetPos = roomSpawnPoint.position + Vector3.up * 0.1f;
+        CharacterController controller = player.GetComponent<CharacterController>();
+
+        if (controller != null)
         {
-            Vector3 targetPos = roomSpawnPoint.position + Vector3.up * 0.1f;
-            CharacterController controller = player.GetComponent<CharacterController>();
-
-            if (controller != null)
-            {
-                controller.enabled = false;
-                player.transform.position = targetPos;
-                controller.enabled = true;
-            }
-            else
-            {
-                player.transform.position = targetPos;
-            }
-
-            PlayerReturnPosition.HasTeleportedIntoRoom = true;
+            controller.enabled = false;
+            player.transform.position = targetPos;
+            controller.enabled = true;
         }
+        else
+        {
+            player.transform.position = targetPos;
+        }
+
+        PlayerReturnPosition.HasTeleportedIntoRoom = true;
     }
+
+
 
     void ExitRestaurant()
     {
