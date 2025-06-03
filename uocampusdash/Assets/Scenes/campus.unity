@@ -8507,10 +8507,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 6147826009795423660, guid: f08b002024d8e9c4d9f7fc5e11af060b, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1241021279}
+    m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 4814140183114437194, guid: f08b002024d8e9c4d9f7fc5e11af060b, type: 3}
       insertIndex: -1
@@ -16277,7 +16274,7 @@ GameObject:
   - component: {fileID: 1241021281}
   - component: {fileID: 1241021280}
   m_Layer: 0
-  m_Name: DoorTrigger
+  m_Name: SceneManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16291,12 +16288,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1241021278}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 20, y: 5, z: 20}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 287.06598, y: 8.460001, z: -116.08432}
+  m_LocalScale: {x: 677.91016, y: 125.241005, z: 500.96414}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 684248587}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1241021280
 MonoBehaviour:
@@ -16313,6 +16310,7 @@ MonoBehaviour:
   roomInterior: {fileID: 381576114}
   buildingExterior: {fileID: 1182341160}
   roomSpawnPoint: {fileID: 1167818533}
+  missionManager: {fileID: 0}
 --- !u!65 &1241021281
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -24063,7 +24061,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1856456600}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.3777714, y: 0.5977364, z: -0.3777714, w: 0.5977364}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -24842,6 +24840,7 @@ MonoBehaviour:
   missionText: {fileID: 1213852193}
   missionCompletePanel: {fileID: 526310587}
   successDistance: 10
+  minDistanceFromTarget: 20
 --- !u!4 &1894347543
 Transform:
   m_ObjectHideFlags: 0
@@ -60648,3 +60647,4 @@ SceneRoots:
   - {fileID: 1909741230}
   - {fileID: 347127576}
   - {fileID: 381576116}
+  - {fileID: 1241021279}
