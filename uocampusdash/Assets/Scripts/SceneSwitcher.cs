@@ -92,13 +92,10 @@ public class SceneSwitcher : MonoBehaviour
             return;
         }
 
-        // Record the player's current (outside) position only once
-        if (!PlayerReturnPosition.HasRecordedOutside)
-        {
-            PlayerReturnPosition.LastOutsidePosition = player.transform.position;
-            PlayerReturnPosition.LastOutsideRotation = player.transform.rotation;
-            PlayerReturnPosition.HasRecordedOutside = true;
-        }
+        // Always record the latest outside position before entering
+        PlayerReturnPosition.LastOutsidePosition = player.transform.position;
+        PlayerReturnPosition.LastOutsideRotation = player.transform.rotation;
+        PlayerReturnPosition.HasRecordedOutside = true;
 
         // Activate interior and deactivate exterior
         roomInterior.SetActive(true);
