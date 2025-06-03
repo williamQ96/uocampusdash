@@ -1004,15 +1004,15 @@ RectTransform:
   m_GameObject: {fileID: 102361965}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1290625900}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 25, y: 13}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchoredPosition: {x: 300, y: 500}
+  m_SizeDelta: {x: 500, y: -308}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &102951749
 MonoBehaviour:
@@ -10020,6 +10020,7 @@ MonoBehaviour:
   hungerText: {fileID: 1290650878}
   timerManager: {fileID: 1290625902}
   missionManager: {fileID: 1894347542}
+  gameOverText: {fileID: 102361966}
   maxHunger: 100
 --- !u!1 &751670977
 GameObject:
@@ -26545,7 +26546,7 @@ MonoBehaviour:
   levelText: {fileID: 286018788}
   successDistance: 10
   minDistanceFromTarget: 20
-  hungerManager: {fileID: 0}
+  hungerManager: {fileID: 751204401}
 --- !u!4 &1894347543
 Transform:
   m_ObjectHideFlags: 0

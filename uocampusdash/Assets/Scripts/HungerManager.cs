@@ -8,9 +8,11 @@ public class HungerManager : MonoBehaviour
     public TextMeshProUGUI hungerText;
     public TimerManager timerManager;
     public MissionManager missionManager;
+    public TextMeshProUGUI gameOverText;
 
     public float maxHunger = 100f;
     private float currentHunger;
+    private bool hasTriggeredHungerGameOver = false;
 
     void Start()
     {
@@ -50,6 +52,23 @@ public class HungerManager : MonoBehaviour
           float percent = (currentHunger / maxHunger) * 100f;
           if (hungerText != null)
               hungerText.text = $"Hunger: {percent:F0}%";
+
+          // Game Over if hunger is max and mission is still active
+          if (currentHunger >= maxHunger && MissionManager.Instance.IsMissionActive)
+          {
+              Debug.Log("💀 Hunger reached 100%! Game Over due to starvation.");
+
+            if (gameOverText != null)
+            {
+                gameOverText.text = "You starved!";
+                gameOverText.gameObject.SetActive(true);
+            }
+
+            var timer = FindObjectOfType<TimerManager>();
+            if (timer != null) timer.enabled = false;
+
+            MissionManager.Instance.OnMissionFailure();
+          }
         }
     }
 
