@@ -1,89 +1,104 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class MissionManager : MonoBehaviour
 {
     public GameObject player;
+    // Text for displaying current mission target (e.g., "Reach: X")
     public TextMeshProUGUI missionText;
     public GameObject missionCompletePanel;
+    public TextMeshProUGUI levelText;
+    // Distance threshold for completing a mission
     public float successDistance = 10f;
-    public float minDistanceFromTarget = 20f; // ✅ Minimum allowed distance between spawn and target
-
+    // Minimum distance between spawn and target
+    public float minDistanceFromTarget = 20f;
     private Transform targetBuilding;
     private bool missionStarted = false;
+    private int currentLevel = 0;
 
     private BuildingName[] buildings;
 
+    // Public accessor to check if mission is ongoing and has a valid target
     public bool IsMissionActive => missionStarted && targetBuilding != null;
 
     void Start()
     {
+        // Find all buildings in the scene
         buildings = FindObjectsOfType<BuildingName>();
-        missionText.text = "Reach: ???";
-        missionText.gameObject.SetActive(true);
-        missionCompletePanel.SetActive(false);
+
+        // Initialize level display
+        if (levelText != null)
+            levelText.text = "Level: 0";
+        else
+            Debug.LogWarning("⚠️ levelText not assigned.");
+
+        // Initialize mission text
+        if (missionText != null)
+        {
+            missionText.text = "Reach: ???";
+            missionText.gameObject.SetActive(true);
+        }
+        else
+            Debug.LogWarning("⚠️ missionText not assigned.");
+
+        // Hide completion panel at start
+        if (missionCompletePanel != null)
+            missionCompletePanel.SetActive(false);
+
+        // MissionCompleteUIManager.Instance.ShowSuccessMenu(); // For testing success menu
     }
 
     void Update()
     {
+        // If a mission is active and has a target, check distance
         if (missionStarted && targetBuilding != null)
         {
             float distance = Vector3.Distance(player.transform.position, targetBuilding.position);
             if (distance <= successDistance)
             {
-                MissionComplete();
+                OnMissionSuccess();
             }
         }
     }
 
+    /// <summary>
+    /// Starts a new mission by selecting a valid spawn and target building.
+    /// </summary>
     public void StartMission()
     {
         Debug.Log("[MissionManager] StartMission() called");
 
         if (buildings.Length < 2)
         {
-            Debug.LogError("Not enough buildings for mission.");
+            Debug.LogError("❌ Not enough buildings for mission.");
             return;
         }
 
         int spawnIndex, targetIndex;
         Vector3 spawnPos;
+        int tries = 0, maxTries = 20;
 
-        // ✅ Retry until we find a pair with enough distance
-        int maxTries = 20;
-        int tries = 0;
-
+        // Keep retrying until spawn and target buildings are far enough apart
         do
         {
             spawnIndex = Random.Range(0, buildings.Length);
             targetIndex = Random.Range(0, buildings.Length);
             while (targetIndex == spawnIndex)
-            {
                 targetIndex = Random.Range(0, buildings.Length);
-            }
 
-            Vector3[] directions = new Vector3[]
-            {
-                Vector3.forward,
-                Vector3.back,
-                Vector3.left,
-                Vector3.right
-            };
-
-            Vector3 randomDirection = directions[Random.Range(0, directions.Length)];
-            spawnPos = buildings[spawnIndex].transform.position + randomDirection * 10f;
+            Vector3[] directions = { Vector3.forward, Vector3.back, Vector3.left, Vector3.right };
+            Vector3 randomDir = directions[Random.Range(0, directions.Length)];
+            spawnPos = buildings[spawnIndex].transform.position + randomDir * 10f;
             spawnPos.y = 0;
-
             tries++;
         } while (tries < maxTries &&
                  Vector3.Distance(spawnPos, buildings[targetIndex].transform.position) < minDistanceFromTarget);
 
         if (tries == maxTries)
-        {
-            Debug.LogWarning("⚠️ Couldn't find a distant enough spawn/target pair after many tries.");
-        }
+            Debug.LogWarning("⚠️ Could not find distant spawn/target pair.");
 
-        // ✅ Place player if not just teleported from restaurant
+        // Move player to new position (if not teleporting from indoor)
         if (!PlayerReturnPosition.HasTeleportedIntoRoom)
         {
             player.transform.position = spawnPos;
@@ -91,53 +106,159 @@ public class MissionManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("[MissionManager] Skipped spawning because player teleported into room.");
-            PlayerReturnPosition.HasTeleportedIntoRoom = false; // reset after use
+            Debug.Log("[MissionManager] Skipped spawn due to room teleport.");
+            PlayerReturnPosition.HasTeleportedIntoRoom = false;
         }
 
         // Set mission target
         targetBuilding = buildings[targetIndex].transform;
-        missionText.text = "Reach: " + buildings[targetIndex].buildingName;
-        missionText.gameObject.SetActive(true);
+
+        // Update UI with target name
+        if (missionText != null)
+        {
+            string buildingName = buildings[targetIndex].buildingName;
+            missionText.text = !string.IsNullOrEmpty(buildingName) ? "Reach: " + buildingName : "Reach: ???";
+            missionText.gameObject.SetActive(true);
+        }
 
         missionStarted = true;
     }
 
-    void MissionComplete()
+    /// <summary>
+    /// Called when the player reaches the target building.
+    /// </summary>
+    private void OnMissionSuccess()
     {
-        missionText.text = "Mission Complete!";
+        missionStarted = false;
         targetBuilding = null;
-        Object.FindFirstObjectByType<TimerManager>().enabled = false;
-        missionCompletePanel.SetActive(true);
+
+        if (missionText != null)
+            missionText.text = "Mission Complete!";
+
+        // Pause the timer
+        var timer = Object.FindFirstObjectByType<TimerManager>();
+        if (timer != null)
+            timer.enabled = false;
+
+        // Show menu for successful mission (Continue / Exit)
+        MissionCompleteUIManager.Instance.ShowSuccessMenu();
+    }
+
+    /// <summary>
+    /// Called when the mission fails (e.g., timeout).
+    /// </summary>
+    public void OnMissionFailure()
+    {
+        missionStarted = false;
+        targetBuilding = null;
+
+        // Stop timer
+        var timer = Object.FindFirstObjectByType<TimerManager>();
+        if (timer != null)
+            timer.enabled = false;
+
+        // Show retry menu (Restart / Exit)
+        MissionCompleteUIManager.Instance.ShowFailureMenu();
+    }
+
+    /// <summary>
+    /// Adds credits and increases level after mission success.
+    /// Called when user presses Continue.
+    /// </summary>
+    public void AddCreditAndLevel()
+    {
         CreditManager.Instance.AddCredits(100);
     }
 
+    public void IncreaseLevel()
+    {
+        currentLevel++;
+        if (levelText != null)
+            levelText.text = "Level: " + currentLevel;
+    }
+
+
+    /// <summary>
+    /// Resets the mission UI and starts a new mission.
+    /// </summary>
     public void RestartMission()
     {
         Debug.Log("[MissionManager] RestartMission called.");
 
-        missionCompletePanel.SetActive(false);
-        missionText.text = "Reach: ???";
+        // Hide success / failure menu
+        MissionCompleteUIManager.Instance.HideAllMenus();
+
+        if (missionCompletePanel != null)
+            missionCompletePanel.SetActive(false);
+
+        if (missionText != null)
+            missionText.text = "Reach: ???";
+
         missionStarted = false;
         targetBuilding = null;
 
-        TimerManager timer = Object.FindFirstObjectByType<TimerManager>();
-        timer.ResetTimer();
-        timer.StartTimer();
+        // Reset timer
+        var timer = Object.FindFirstObjectByType<TimerManager>();
+        if (timer != null)
+        {
+            timer.ResetTimer();
+            timer.StartTimer();
+        }
 
         StartMission();
     }
 
-    public void ShowCompletePanel()
-    {
-        missionCompletePanel.SetActive(true);
-    }
 
+
+    /// <summary>
+    /// Return to main menu and hide mission UI.
+    /// </summary>
     public void BackToMainMenu()
     {
         Debug.Log("[MissionManager] Returning to Main Menu.");
-        missionCompletePanel.SetActive(false);
-        missionText.gameObject.SetActive(false);
-        Object.FindFirstObjectByType<GameUIManager>().ShowMainMenu();
+
+        if (missionCompletePanel != null)
+            missionCompletePanel.SetActive(false);
+
+        if (missionText != null)
+            missionText.gameObject.SetActive(false);
+
+        var ui = Object.FindFirstObjectByType<GameUIManager>();
+        if (ui != null)
+            ui.ShowMainMenu();
     }
+
+    public void ShowCompletePanel() => missionCompletePanel?.SetActive(true);
+
+    // This method is called by the "Continue" button after successful mission
+    public void ContinueMission()
+    {
+        Debug.Log("[MissionManager] ContinueMission() called");
+        
+        if (levelText != null)
+            levelText.text = "Level: " + currentLevel;
+
+        CreditManager.Instance.AddCredits(100);
+        MissionCompleteUIManager.Instance.HideAllMenus();  // Hide both success/failure menu
+
+        RestartMission(); // Start a new round
+    }
+
+    public void ExitGame()
+    {
+        Debug.Log("[MissionManager] Exiting to main menu.");
+
+        // Hide success/failure menu
+        MissionCompleteUIManager.Instance.HideAllMenus();
+
+        if (missionText != null)
+            missionText.gameObject.SetActive(false);
+
+        // Show the main menu
+        GameUIManager ui = Object.FindFirstObjectByType<GameUIManager>();
+        if (ui != null)
+            ui.ShowMainMenu();
+    }
+
+
 }

@@ -56,9 +56,17 @@ public class TimerManager : MonoBehaviour
         gameOverText.gameObject.SetActive(true);
         gameOverText.text = "Game Over!";
 
-        // Show mission complete panel even when time runs out
-        FindObjectOfType<MissionManager>().ShowCompletePanel();
+        MissionManager missionManager = FindObjectOfType<MissionManager>();
+        if (missionManager != null)
+        {
+            missionManager.OnMissionFailure();
+        }
+        else
+        {
+            Debug.LogError("❌ MissionManager not found in scene.");
+        }
     }
+
 
     // Resets the timer state and hides UI
     public void ResetTimer()
