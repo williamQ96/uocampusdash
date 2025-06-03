@@ -117,6 +117,10 @@ public class SceneSwitcher : MonoBehaviour
         }
 
         PlayerReturnPosition.HasTeleportedIntoRoom = true;
+
+        TimerManager timer = FindAnyObjectByType<TimerManager>();
+        if (timer != null)
+            timer.PauseTimer();
     }
 
 
@@ -146,6 +150,10 @@ public class SceneSwitcher : MonoBehaviour
 
         // Reset flags
         PlayerReturnPosition.HasTeleportedIntoRoom = false;
+
+        TimerManager timer = FindAnyObjectByType<TimerManager>();
+        if (timer != null)
+            timer.ResumeTimer();
     }
 
     void OnTriggerEnter(Collider other)

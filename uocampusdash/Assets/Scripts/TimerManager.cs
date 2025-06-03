@@ -9,6 +9,7 @@ public class TimerManager : MonoBehaviour
 
     private float remainingTime;
     private bool timerRunning = false;
+    private bool isPaused = false; // Pause timer in restaurant
 
     void Start()
     {
@@ -19,7 +20,7 @@ public class TimerManager : MonoBehaviour
 
     void Update()
     {
-        if (timerRunning)
+        if (timerRunning && !isPaused)
         {
             remainingTime -= Time.deltaTime;
             if (remainingTime > 0)
@@ -40,6 +41,7 @@ public class TimerManager : MonoBehaviour
     {
         remainingTime = timeLimit;
         timerRunning = true;
+        isPaused = false;
 
         timerText.gameObject.SetActive(true);
         gameOverText.gameObject.SetActive(false);
@@ -61,12 +63,23 @@ public class TimerManager : MonoBehaviour
     // Resets the timer state and hides UI
     public void ResetTimer()
     {
-    remainingTime = timeLimit;
-    timerRunning = false;
+        remainingTime = timeLimit;
+        timerRunning = false;
+        isPaused = false;
 
-    timerText.gameObject.SetActive(false);
-    gameOverText.gameObject.SetActive(false);
+        timerText.gameObject.SetActive(false);
+        gameOverText.gameObject.SetActive(false);
 
-    enabled = true; // Reactivate the script in case it was disabled
+        enabled = true; // Reactivate the script in case it was disabled
+    }
+    // ✅ New methods to pause and resume
+    public void PauseTimer()
+    {
+        isPaused = true;
+    }
+
+    public void ResumeTimer()
+    {
+        isPaused = false;
     }
 }
