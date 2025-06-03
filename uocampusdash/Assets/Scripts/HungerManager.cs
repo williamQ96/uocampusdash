@@ -13,6 +13,7 @@ public class HungerManager : MonoBehaviour
     public float maxHunger = 100f;
     private float currentHunger;
     private bool hasTriggeredHungerGameOver = false;
+    public float hungerReductionFactor = 1.0f;
 
     void Start()
     {
@@ -32,7 +33,7 @@ public class HungerManager : MonoBehaviour
 
         if (MissionManager.Instance != null)
         {
-            Debug.Log($"✅ IsMissionActive: {MissionManager.Instance.IsMissionActive}");
+            // Debug.Log($"✅ IsMissionActive: {MissionManager.Instance.IsMissionActive}");
         }
 
         if (MissionManager.Instance != null && MissionManager.Instance.IsMissionActive)
@@ -42,13 +43,15 @@ public class HungerManager : MonoBehaviour
           int level = MissionManager.Instance.GetCurrentLevel(); 
 
           // Linear interpolation
-          float hungerRate = Mathf.Lerp(0.05f, 0.5f, level / 10f); // Level higher - hunger increases
-          currentHunger += hungerRate * Time.deltaTime * 5f;
+          float baseRate = Mathf.Lerp(0.05f, 0.5f, level / 10f); // Level higher - hunger increases
+
+          float adjustedRate = baseRate * (FoodManager.Instance != null ? FoodManager.Instance.hungerReductionFactor : 1.0f);
+
+          currentHunger += adjustedRate * Time.deltaTime * 5f;
           currentHunger = Mathf.Clamp(currentHunger, 0f, maxHunger);
 
           // Update the percentage
           hungerSlider.value = currentHunger;
-
           float percent = (currentHunger / maxHunger) * 100f;
           if (hungerText != null)
               hungerText.text = $"Hunger: {percent:F0}%";
@@ -75,8 +78,17 @@ public class HungerManager : MonoBehaviour
     public void ResetHunger()
     {
         currentHunger = 0f;
+        hungerReductionFactor = 1.0f; // Reset to the normal hungry speed
         if (hungerSlider != null)
             hungerSlider.value = currentHunger;
     }
+
+    // After eating food from restaurant
+    public void ReduceHungerRate(float factor)
+    {
+        hungerReductionFactor = factor;
+        Debug.Log($"✅ Hunger reduction factor set to {factor}");
+    }
+
 
 }

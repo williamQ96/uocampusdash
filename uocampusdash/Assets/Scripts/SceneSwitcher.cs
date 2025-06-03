@@ -1,15 +1,17 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class SceneSwitcher : MonoBehaviour
 {
-    public GameObject roomInterior;
-    public GameObject buildingExterior;
-    public Transform roomSpawnPoint;
-    public MissionManager missionManager;
+    public GameObject roomInterior; // The interior scene of the building
+    public GameObject buildingExterior; // The exterior model of the building
+    public Transform roomSpawnPoint; // Where player appears in the interior
+    public MissionManager missionManager; // Reference to mission manager
+    public FoodMenuUI foodMenuUI; // Reference to the food menu script
 
-    private bool canEnter = false;
-    private GameObject player;
+    private bool canEnter = false; // Player is in range to enter
+    private GameObject player; // Reference to the player
 
     void Start()
     {
@@ -20,23 +22,45 @@ public class SceneSwitcher : MonoBehaviour
                 roomSpawnPoint = layout.playerSpawnPoint;
         }
 
-        // Fallback: find MissionManager in scene
         if (missionManager == null)
         {
             missionManager = FindObjectOfType<MissionManager>();
             if (missionManager == null)
                 Debug.LogWarning("⚠️ No MissionManager found.");
         }
+
+        if (foodMenuUI == null)
+        {
+            foodMenuUI = FindObjectOfType<FoodMenuUI>();
+            if (foodMenuUI == null)
+                Debug.LogError("❌ FoodMenuUI not found in scene. Please assign manually.");
+        }
     }
 
+    IEnumerator ShowFoodMenuDelayed()
+    {
+        yield return new WaitForSeconds(1f);
+        if (foodMenuUI != null)
+        {
+            Debug.Log("✅ Calling foodMenuUI.ShowMenu()");
+            foodMenuUI.ShowMenu();
+        }
+        else
+        {
+            Debug.LogError("❌ foodMenuUI is NOT assigned in Inspector!");
+        }
+    }
 
     void Update()
     {
         if (canEnter && Input.GetKeyDown(KeyCode.E))
         {
+            Debug.Log("🟡 E pressed, attempting to enter restaurant.");
+
             if (missionManager == null || missionManager.IsMissionActive)
             {
                 EnterRestaurant();
+                Debug.Log("✅ Entered restaurant, starting menu coroutine.");
             }
             else
             {
@@ -44,20 +68,19 @@ public class SceneSwitcher : MonoBehaviour
             }
         }
 
-        if (PlayerReturnPosition.HasTeleportedIntoRoom && Input.GetKeyDown(KeyCode.H)) // Press H - come back to where the player was in main scene
+        if (PlayerReturnPosition.HasTeleportedIntoRoom && Input.GetKeyDown(KeyCode.H))
         {
             ExitRestaurant();
         }
 
-        if (Input.GetKeyDown(KeyCode.B)) // Press B - switch scene
+        if (Input.GetKeyDown(KeyCode.B))
         {
             SceneManager.LoadScene("BRP Sample Scene");
         }
 
-        // Press H - Return to main scene if currently in BRP Sample Scene
         if (SceneManager.GetActiveScene().name == "BRP Sample Scene" && Input.GetKeyDown(KeyCode.H))
         {
-            SceneManager.LoadScene("campus"); 
+            SceneManager.LoadScene("campus");
         }
     }
 
@@ -65,12 +88,10 @@ public class SceneSwitcher : MonoBehaviour
     {
         if (player == null) return;
 
-        // If roomInterior is inactive, temporarily activate it to access its components
         bool wasInactive = !roomInterior.activeSelf;
         if (wasInactive)
             roomInterior.SetActive(true);
 
-        // Try to get the RestaurantLayout component and fetch the spawn point
         var layout = roomInterior.GetComponent<RestaurantLayout>();
         if (layout != null)
         {
@@ -81,27 +102,22 @@ public class SceneSwitcher : MonoBehaviour
             Debug.LogWarning("❌ RestaurantLayout component not found on roomInterior.");
         }
 
-        // If it was initially inactive, revert it back to inactive
         if (wasInactive)
             roomInterior.SetActive(false);
 
-        // If the spawn point is still missing, do not continue
         if (roomSpawnPoint == null)
         {
             Debug.LogError("❌ roomSpawnPoint is null. Cannot teleport.");
             return;
         }
 
-        // Always record the latest outside position before entering
         PlayerReturnPosition.LastOutsidePosition = player.transform.position;
         PlayerReturnPosition.LastOutsideRotation = player.transform.rotation;
         PlayerReturnPosition.HasRecordedOutside = true;
 
-        // Activate interior and deactivate exterior
         roomInterior.SetActive(true);
         if (buildingExterior != null) buildingExterior.SetActive(false);
 
-        // Move player to the spawn point inside the restaurant
         Vector3 targetPos = roomSpawnPoint.position + Vector3.up * 0.1f;
         CharacterController controller = player.GetComponent<CharacterController>();
 
@@ -121,18 +137,24 @@ public class SceneSwitcher : MonoBehaviour
         TimerManager timer = FindAnyObjectByType<TimerManager>();
         if (timer != null)
             timer.PauseTimer();
-    }
 
+        // ✅ Always show menu when entering
+        StartCoroutine(ShowFoodMenuDelayed());
+    }
 
 
     void ExitRestaurant()
     {
+        if (foodMenuUI != null)
+        {
+            foodMenuUI.HideMenu(); // ✅ Hide the food menu on exit
+        }
+
         if (player == null) return;
 
         if (roomInterior != null) roomInterior.SetActive(false);
         if (buildingExterior != null) buildingExterior.SetActive(true);
 
-        // Move back outside
         CharacterController controller = player.GetComponent<CharacterController>();
 
         if (controller != null)
@@ -148,7 +170,6 @@ public class SceneSwitcher : MonoBehaviour
             player.transform.rotation = PlayerReturnPosition.LastOutsideRotation;
         }
 
-        // Reset flags
         PlayerReturnPosition.HasTeleportedIntoRoom = false;
 
         TimerManager timer = FindAnyObjectByType<TimerManager>();
@@ -170,8 +191,6 @@ public class SceneSwitcher : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             canEnter = false;
-
-            // Keep player reference if inside room
             if (!PlayerReturnPosition.HasTeleportedIntoRoom)
             {
                 player = null;
