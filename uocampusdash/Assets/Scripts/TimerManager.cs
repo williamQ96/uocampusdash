@@ -90,4 +90,11 @@ public class TimerManager : MonoBehaviour
     {
         isPaused = false;
     }
+
+    public float GetRemainingTime()
+    {
+        return remainingTime;
+    }
+
 }
+
