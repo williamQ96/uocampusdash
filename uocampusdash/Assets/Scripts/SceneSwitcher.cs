@@ -1,6 +1,7 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-public class DoorTrigger : MonoBehaviour
+public class SceneSwitcher : MonoBehaviour
 {
     public GameObject roomInterior;
     public GameObject buildingExterior;
@@ -43,9 +44,20 @@ public class DoorTrigger : MonoBehaviour
             }
         }
 
-        if (PlayerReturnPosition.HasTeleportedIntoRoom && Input.GetKeyDown(KeyCode.H))
+        if (PlayerReturnPosition.HasTeleportedIntoRoom && Input.GetKeyDown(KeyCode.H)) // Press H - come back to where the player was in main scene
         {
             ExitRestaurant();
+        }
+
+        if (Input.GetKeyDown(KeyCode.B)) // Press B - switch scene
+        {
+            SceneManager.LoadScene("BRP Sample Scene");
+        }
+
+        // Press H - Return to main scene if currently in BRP Sample Scene
+        if (SceneManager.GetActiveScene().name == "BRP Sample Scene" && Input.GetKeyDown(KeyCode.H))
+        {
+            SceneManager.LoadScene("campus"); 
         }
     }
 
@@ -110,7 +122,6 @@ public class DoorTrigger : MonoBehaviour
 
         // Reset flags
         PlayerReturnPosition.HasTeleportedIntoRoom = false;
-        PlayerReturnPosition.HasRecordedOutside = false;
     }
 
     void OnTriggerEnter(Collider other)
