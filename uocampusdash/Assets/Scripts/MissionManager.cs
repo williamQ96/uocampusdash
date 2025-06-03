@@ -25,6 +25,18 @@ public class MissionManager : MonoBehaviour
     // Public accessor to check if mission is ongoing and has a valid target
     public bool IsMissionActive => missionStarted && targetBuilding != null;
 
+    public HungerManager hungerManager;
+
+    public static MissionManager Instance;
+
+    void Awake()
+    {
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
+    }
+
     void Start()
     {
         // Filter out empty name buildings
@@ -71,6 +83,11 @@ public class MissionManager : MonoBehaviour
     public void StartMission()
     {
         Debug.Log("[MissionManager] StartMission() called");
+
+        if (hungerManager != null)
+        {
+            hungerManager.ResetHunger();
+        }
 
         if (buildings.Length < 2)
         {
@@ -184,6 +201,11 @@ public class MissionManager : MonoBehaviour
     {
         Debug.Log("[MissionManager] RestartMission called.");
 
+        if (hungerManager != null)
+        {
+            hungerManager.ResetHunger();
+        }
+
         // Hide success / failure menu
         MissionCompleteUIManager.Instance.HideAllMenus();
 
@@ -255,5 +277,9 @@ public class MissionManager : MonoBehaviour
             ui.ShowMainMenu();
     }
 
+    public int GetCurrentLevel()
+    {
+        return currentLevel;
+    }
 
 }
