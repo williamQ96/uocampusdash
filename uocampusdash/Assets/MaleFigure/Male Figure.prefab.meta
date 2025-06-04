@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: aa48c47149f986045a6694fe3b8dd0a7
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: egyptcollection
+  assetBundleVariant: art
+AssetOrigin:
+  serializedVersion: 1
+  productId: 208808
+  packageName: Egyptian Statue of a Male Figure
+  packageVersion: 1.0
+  assetPath: Assets/MaleFigure/Male Figure.prefab
+  uploadId: 468729
