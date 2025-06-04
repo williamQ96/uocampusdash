@@ -20,6 +20,7 @@ public class FoodMenuUI : MonoBehaviour
     private List<FoodMenuItem> currentMenu;
 
     public static FoodMenuUI Instance;
+    private bool menuForceClosed = false;
 
     void Awake()
     {
@@ -157,7 +158,8 @@ public class FoodMenuUI : MonoBehaviour
         yield return new WaitForSeconds(2f);
         feedbackText.text = "";
         feedbackText.gameObject.SetActive(false);
-        ShowMenu();
+        if (!menuForceClosed)
+            ShowMenu();
     }
 
     private void GambleEffect()
@@ -201,7 +203,14 @@ public class FoodMenuUI : MonoBehaviour
 
     public void ForceCloseMenu()
     {
-        HideMenu(); 
+        menuForceClosed = true;
+
+        if (menuPanel != null)
+            menuPanel.SetActive(false);
+
+        foreach (var item in menuItems)
+            if (item != null) item.gameObject.SetActive(false);
+
         currentMenu = regularMenu;
         menuActive = false;
         currentIndex = 0;
@@ -211,9 +220,11 @@ public class FoodMenuUI : MonoBehaviour
             feedbackText.text = "";
             feedbackText.gameObject.SetActive(false);
         }
-    }
+        Debug.Log("✅ ForceCloseMenu called. Deactivating FoodMenuPanel");
 
+    }
 }
+
 
 [System.Serializable]
 public class FoodMenuItem

@@ -71,9 +71,9 @@ public class SceneSwitcher : MonoBehaviour
         if (PlayerReturnPosition.HasTeleportedIntoRoom && Input.GetKeyDown(KeyCode.H))
         {
             ExitRestaurant();
-            if (FoodMenuUI.Instance != null)
+            if (foodMenuUI != null)
             {
-                FoodMenuUI.Instance.ForceCloseMenu();
+                foodMenuUI.ForceCloseMenu();
             }
         }
 
@@ -151,7 +151,7 @@ public class SceneSwitcher : MonoBehaviour
     {
         if (foodMenuUI != null)
         {
-            foodMenuUI.ForceCloseMenu(); 
+            FoodMenuUI.Instance.ForceCloseMenu();
         }
 
         if (player == null) return;
