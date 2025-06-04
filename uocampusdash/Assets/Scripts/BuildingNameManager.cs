@@ -35,26 +35,29 @@ void Update()
 {
     foreach (var (building, nameUI) in trackedBuildings)
     {
-        if (building == null) continue;
+        if (building == null || nameUI == null) continue;
 
-        // Convert building world position to screen space
-        Vector3 screenPosition = mainCamera.WorldToScreenPoint(building.position + Vector3.up * 5f);
+        // Try to get the collider
+        Collider col = building.GetComponent<Collider>();
+        Vector3 anchorPos;
 
-        // Set UI position on screen
-        nameUI.transform.position = screenPosition;
-
-        // Show or hide based on distance and visibility
-        float distance = Vector3.Distance(mainCamera.transform.position, building.position);
-
-        // Optionally: hide if behind the camera
-        if (screenPosition.z < 0)
+        if (col != null)
         {
-            nameUI.SetActive(false);
+            // Use the collider center + height offset
+            anchorPos = col.bounds.center + Vector3.up * col.bounds.extents.y;
         }
         else
         {
-            nameUI.SetActive(distance <= maxVisibleDistance);
+            // Fallback: original method
+            anchorPos = building.position + Vector3.up * 5f;
         }
+
+        Vector3 screenPosition = mainCamera.WorldToScreenPoint(anchorPos);
+        nameUI.transform.position = screenPosition;
+
+        float distance = Vector3.Distance(mainCamera.transform.position, anchorPos);
+        nameUI.SetActive(screenPosition.z >= 0 && distance <= maxVisibleDistance);
     }
 }
+
 }

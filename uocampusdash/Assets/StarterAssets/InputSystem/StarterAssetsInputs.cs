@@ -25,20 +25,8 @@ using UnityEngine.InputSystem;
 
     public void OnLook(InputAction.CallbackContext context)
     {
-        if (!inputEnabled)
-    {
-        Debug.LogWarning("🛑 Look input blocked — inputEnabled is false");
-        return;
-    }
-
-    if (!cursorInputForLook)
-    {
-        Debug.LogWarning("⚠️ Look input ignored — cursorInputForLook is false");
-        return;
-    }
-
-    look = context.ReadValue<Vector2>();
-    Debug.Log($"👁️ OnLook received: {look}");
+        look = context.ReadValue<Vector2>();
+        Debug.Log("👀 OnLook input: " + look);
     }
 
 		public void OnJump(InputAction.CallbackContext context)
