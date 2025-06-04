@@ -4,6 +4,9 @@ using System.Collections;
 
 public class SceneSwitcher : MonoBehaviour
 {
+    public GameObject bedroom;
+    public Transform bedroomSpawnPoint; // The landed position in bedroom
+
     public GameObject roomInterior; // The interior scene of the building
     public GameObject buildingExterior; // The exterior model of the building
     public Transform roomSpawnPoint; // Where player appears in the interior
@@ -201,4 +204,32 @@ public class SceneSwitcher : MonoBehaviour
             }
         }
     }
+
+    void EnterBedroom()
+    {
+        if (player == null) return;
+
+        if (bedroom != null) bedroom.SetActive(true);
+        if (buildingExterior != null) buildingExterior.SetActive(false);
+
+        // Send player to bedroom
+        CharacterController controller = player.GetComponent<CharacterController>();
+        if (controller != null) controller.enabled = false;
+
+        player.transform.position = bedroomSpawnPoint.position;
+        player.transform.rotation = bedroomSpawnPoint.rotation;
+
+        if (controller != null) controller.enabled = true;
+
+        // Set virtual camera to track player
+        var virtualCam = FindObjectOfType<Cinemachine.CinemachineVirtualCamera>();
+        if (virtualCam != null)
+        {
+            virtualCam.Follow = player.transform;
+            virtualCam.LookAt = player.transform;
+        }
+
+        Debug.Log("🏠 Entered bedroom and camera updated.");
+    }
+
 }
