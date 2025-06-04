@@ -40,9 +40,20 @@ public class MissionManager : MonoBehaviour
     void Start()
     {
         // Filter out empty name buildings
-        buildings = FindObjectsOfType<BuildingName>()
-                    .Where(b => !string.IsNullOrWhiteSpace(b.buildingName))
-                    .ToArray();
+// Only include buildings that are children of the "buildings" GameObject
+GameObject buildingRoot = GameObject.Find("buildings");
+
+if (buildingRoot != null)
+{
+    buildings = buildingRoot.GetComponentsInChildren<BuildingName>(true)
+                            .Where(b => !string.IsNullOrWhiteSpace(b.buildingName))
+                            .ToArray();
+}
+else
+{
+    Debug.LogError("❌ Cannot find GameObject named 'buildings' in hierarchy.");
+    buildings = new BuildingName[0];
+}
 
         // Initialize level display
         if (levelText != null)
@@ -69,13 +80,13 @@ public class MissionManager : MonoBehaviour
     void Update()
     {
         // If a mission is active and has a target, check distance
-        if (missionStarted && targetBuilding != null)
+        Vector3 playerXZ = new Vector3(player.transform.position.x, 0, player.transform.position.z);
+        Vector3 targetXZ = new Vector3(targetBuilding.position.x, 0, targetBuilding.position.z);
+        float flatDistance = Vector3.Distance(playerXZ, targetXZ);
+
+        if (flatDistance <= successDistance)
         {
-            float distance = Vector3.Distance(player.transform.position, targetBuilding.position);
-            if (distance <= successDistance)
-            {
-                OnMissionSuccess();
-            }
+            OnMissionSuccess();
         }
     }
 
@@ -110,7 +121,7 @@ public class MissionManager : MonoBehaviour
             Vector3[] directions = { Vector3.forward, Vector3.back, Vector3.left, Vector3.right };
             Vector3 randomDir = directions[Random.Range(0, directions.Length)];
             spawnPos = buildings[spawnIndex].transform.position + randomDir * 10f;
-            spawnPos.y = 0;
+            spawnPos.y = 2f;
             tries++;
         } while (tries < maxTries &&
                  Vector3.Distance(spawnPos, buildings[targetIndex].transform.position) < minDistanceFromTarget);
