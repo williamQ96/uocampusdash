@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 69e4678c5378e844d972be6fa25d6ff5
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 313963
+  packageName: Chibi Character
+  packageVersion: 1.0
+  assetPath: Assets/ChibiCharacter/Character/Materials/EyeBackground.mat
+  uploadId: 740552
