@@ -2,13 +2,19 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+
 public class GameUIManager : MonoBehaviour
 {
     public GameObject[] menuButtons;        // 0 = Start, 1 = Exit
     public TextMeshProUGUI exitText;        // Assign in Inspector
 
     private int selectedIndex = 0;
+    private CameraIntroSwitcher cameraSwitcher;
 
+    void Awake()
+    {
+        cameraSwitcher = FindObjectOfType<CameraIntroSwitcher>();
+    }
     void Start()
     {
         ShowMainMenu();
@@ -35,6 +41,7 @@ public class GameUIManager : MonoBehaviour
                 switch (selectedIndex)
                 {
                     case 0: // Start Game
+                        cameraSwitcher?.SwitchToMainCamera();  // << NEW LINE
                         StarterAssets.StarterAssetsInputs.inputEnabled = true;
                         foreach (var btn in menuButtons) btn.SetActive(false);
                         FindObjectOfType<TimerManager>()?.StartTimer();
