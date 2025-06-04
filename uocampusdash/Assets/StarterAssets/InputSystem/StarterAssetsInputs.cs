@@ -1,10 +1,6 @@
 using UnityEngine;
-#if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
-#endif
 
-namespace StarterAssets
-{
 	public class StarterAssetsInputs : MonoBehaviour
 	{
 		[Header("Character Input Values")]
@@ -21,34 +17,39 @@ namespace StarterAssets
 		public bool cursorLocked = true;
 		public bool cursorInputForLook = true;
 
-#if ENABLE_INPUT_SYSTEM
-		public void OnMove(InputValue value)
-		{
-			if (!inputEnabled) return;
-			MoveInput(value.Get<Vector2>());
-		}
+		public void OnMove(InputAction.CallbackContext context)
+    {
+        move = context.ReadValue<Vector2>();
+        Debug.Log($"🔄 OnMove: {move}");
+    }
 
-		public void OnLook(InputValue value)
-		{
-			if (!inputEnabled) return;
-			if(cursorInputForLook)
-			{
-				LookInput(value.Get<Vector2>());
-			}
-		}
+    public void OnLook(InputAction.CallbackContext context)
+    {
+        if (!inputEnabled)
+    {
+        Debug.LogWarning("🛑 Look input blocked — inputEnabled is false");
+        return;
+    }
 
-		public void OnJump(InputValue value)
-		{
-			if (!inputEnabled) return;
-			JumpInput(value.isPressed);
-		}
+    if (!cursorInputForLook)
+    {
+        Debug.LogWarning("⚠️ Look input ignored — cursorInputForLook is false");
+        return;
+    }
 
-		public void OnSprint(InputValue value)
-		{
-			if (!inputEnabled) return;
-			SprintInput(value.isPressed);
-		}
-#endif
+    look = context.ReadValue<Vector2>();
+    Debug.Log($"👁️ OnLook received: {look}");
+    }
+
+		public void OnJump(InputAction.CallbackContext context)
+    {
+        jump = context.ReadValueAsButton();
+    }
+
+    public void OnSprint(InputAction.CallbackContext context)
+    {
+        sprint = context.ReadValueAsButton();
+    }
 
 
 		public void MoveInput(Vector2 newMoveDirection)
@@ -82,4 +83,3 @@ namespace StarterAssets
 		}
 	}
 	
-}

@@ -1,20 +1,28 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using UnityEngine.InputSystem;
+using Cinemachine;
+using StarterAssets;
 
 public class SceneSwitcher : MonoBehaviour
 {
-    public GameObject roomInterior; // The interior scene of the building
-    public GameObject buildingExterior; // The exterior model of the building
-    public Transform roomSpawnPoint; // Where player appears in the interior
-    public MissionManager missionManager; // Reference to mission manager
-    public FoodMenuUI foodMenuUI; // Reference to the food menu script
+    public GameObject roomInterior;
+    public GameObject buildingExterior;
+    public Transform roomSpawnPoint;
+    public MissionManager missionManager;
+    public FoodMenuUI foodMenuUI;
 
-    private bool canEnter = false; // Player is in range to enter
-    private GameObject player; // Reference to the player
+    private bool canEnter = false;
+    private GameObject player;
+
+    public string museumSceneName = "Museum";
+    public string campusSceneName = "campus";
 
     void Start()
     {
+        player = GameObject.FindGameObjectWithTag("Player");
+
         if (roomInterior != null && roomSpawnPoint == null)
         {
             var layout = roomInterior.GetComponent<RestaurantLayout>();
@@ -22,145 +30,128 @@ public class SceneSwitcher : MonoBehaviour
                 roomSpawnPoint = layout.playerSpawnPoint;
         }
 
-        if (missionManager == null)
-        {
-            missionManager = FindObjectOfType<MissionManager>();
-            if (missionManager == null)
-                Debug.LogWarning("⚠️ No MissionManager found.");
-        }
-
-        if (foodMenuUI == null)
-        {
-            foodMenuUI = FindObjectOfType<FoodMenuUI>();
-            if (foodMenuUI == null)
-                Debug.LogError("❌ FoodMenuUI not found in scene. Please assign manually.");
-        }
+        missionManager ??= FindObjectOfType<MissionManager>();
+        foodMenuUI ??= FindObjectOfType<FoodMenuUI>();
     }
 
     IEnumerator ShowFoodMenuDelayed()
     {
         yield return new WaitForSeconds(1f);
         if (foodMenuUI != null)
-        {
-            Debug.Log("✅ Calling foodMenuUI.ShowMenu()");
             foodMenuUI.ShowMenu();
-        }
-        else
-        {
-            Debug.LogError("❌ foodMenuUI is NOT assigned in Inspector!");
-        }
     }
 
     void Update()
     {
-        if (canEnter && Input.GetKeyDown(KeyCode.E))
+        if (canEnter && Input.GetKeyDown(KeyCode.E) && player != null)
         {
-            Debug.Log("🟡 E pressed, attempting to enter restaurant.");
-
             if (missionManager == null || missionManager.IsMissionActive)
             {
                 EnterRestaurant();
-                Debug.Log("✅ Entered restaurant, starting menu coroutine.");
-            }
-            else
-            {
-                Debug.LogWarning("⛔ You can only enter the restaurant during an active mission.");
+                StartCoroutine(ShowFoodMenuDelayed());
             }
         }
 
         if (PlayerReturnPosition.HasTeleportedIntoRoom && Input.GetKeyDown(KeyCode.H))
         {
             ExitRestaurant();
-            if (foodMenuUI != null)
+            foodMenuUI?.ForceCloseMenu();
+        }
+
+        if (canEnter && Input.GetKeyDown(KeyCode.B) && player != null)
+        {
+            // Disable movement before scene change
+            var controller = player.GetComponent<CharacterController>();
+            if (controller != null) controller.enabled = false;
+
+            var thirdPerson = player.GetComponent<ThirdPersonController>();
+            if (thirdPerson != null) thirdPerson.enabled = false;
+
+            DontDestroyOnLoad(player);
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            SceneManager.LoadScene(museumSceneName);
+        }
+
+        if (SceneManager.GetActiveScene().name == museumSceneName && Input.GetKeyDown(KeyCode.H))
+        {
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            SceneManager.LoadScene(campusSceneName);
+        }
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (player != null)
+        {
+            player.SetActive(true);
+
+            // ✅ Re-bind Cinemachine camera
+            var vcam = FindObjectOfType<CinemachineVirtualCamera>();
+            if (vcam != null)
             {
-                foodMenuUI.ForceCloseMenu();
+                var camRoot = player.transform.Find("PlayerCameraRoot");
+                vcam.Follow = camRoot;
+                vcam.LookAt = camRoot;
             }
+
+            // ✅ Re-enable movement scripts
+            var controller = player.GetComponent<CharacterController>();
+            if (controller != null) controller.enabled = true;
+
+            var thirdPerson = player.GetComponent<ThirdPersonController>();
+            if (thirdPerson != null) thirdPerson.enabled = true;
+
+            var input = player.GetComponent<PlayerInput>();
+            if (input != null)
+            {
+                input.enabled = false;
+                input.enabled = true;
+            }
+
+            // ✅ Re-enable input + cursor lock
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+
+            StarterAssetsInputs.inputEnabled = true;
+
+            Debug.Log($"🟢 Player ready in scene '{scene.name}', inputEnabled: {StarterAssetsInputs.inputEnabled}");
         }
 
-        if (Input.GetKeyDown(KeyCode.B))
-        {
-            SceneManager.LoadScene("BRP Sample Scene");
-        }
-
-        if (SceneManager.GetActiveScene().name == "BRP Sample Scene" && Input.GetKeyDown(KeyCode.H))
-        {
-            SceneManager.LoadScene("campus");
-        }
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     void EnterRestaurant()
     {
-        if (player == null) return;
-
-        bool wasInactive = !roomInterior.activeSelf;
-        if (wasInactive)
-            roomInterior.SetActive(true);
-
-        var layout = roomInterior.GetComponent<RestaurantLayout>();
-        if (layout != null)
-        {
-            roomSpawnPoint = layout.playerSpawnPoint;
-        }
-        else
-        {
-            Debug.LogWarning("❌ RestaurantLayout component not found on roomInterior.");
-        }
-
-        if (wasInactive)
-            roomInterior.SetActive(false);
-
-        if (roomSpawnPoint == null)
-        {
-            Debug.LogError("❌ roomSpawnPoint is null. Cannot teleport.");
-            return;
-        }
+        if (player == null || roomSpawnPoint == null) return;
 
         PlayerReturnPosition.LastOutsidePosition = player.transform.position;
         PlayerReturnPosition.LastOutsideRotation = player.transform.rotation;
         PlayerReturnPosition.HasRecordedOutside = true;
 
-        roomInterior.SetActive(true);
-        if (buildingExterior != null) buildingExterior.SetActive(false);
+        roomInterior?.SetActive(true);
+        buildingExterior?.SetActive(false);
 
-        Vector3 targetPos = roomSpawnPoint.position + Vector3.up * 0.1f;
         CharacterController controller = player.GetComponent<CharacterController>();
-
         if (controller != null)
         {
             controller.enabled = false;
-            player.transform.position = targetPos;
+            player.transform.position = roomSpawnPoint.position + Vector3.up * 0.1f;
             controller.enabled = true;
-        }
-        else
-        {
-            player.transform.position = targetPos;
         }
 
         PlayerReturnPosition.HasTeleportedIntoRoom = true;
-
-        TimerManager timer = FindAnyObjectByType<TimerManager>();
-        if (timer != null)
-            timer.PauseTimer();
-
-        // ✅ Always show menu when entering
-        StartCoroutine(ShowFoodMenuDelayed());
+        FindObjectOfType<TimerManager>()?.PauseTimer();
     }
-
 
     void ExitRestaurant()
     {
-        if (foodMenuUI != null)
-        {
-            FoodMenuUI.Instance.ForceCloseMenu();
-        }
-
+        foodMenuUI?.ForceCloseMenu();
         if (player == null) return;
 
-        if (roomInterior != null) roomInterior.SetActive(false);
-        if (buildingExterior != null) buildingExterior.SetActive(true);
+        roomInterior?.SetActive(false);
+        buildingExterior?.SetActive(true);
 
         CharacterController controller = player.GetComponent<CharacterController>();
-
         if (controller != null)
         {
             controller.enabled = false;
@@ -168,17 +159,9 @@ public class SceneSwitcher : MonoBehaviour
             player.transform.rotation = PlayerReturnPosition.LastOutsideRotation;
             controller.enabled = true;
         }
-        else
-        {
-            player.transform.position = PlayerReturnPosition.LastOutsidePosition;
-            player.transform.rotation = PlayerReturnPosition.LastOutsideRotation;
-        }
 
         PlayerReturnPosition.HasTeleportedIntoRoom = false;
-
-        TimerManager timer = FindAnyObjectByType<TimerManager>();
-        if (timer != null)
-            timer.ResumeTimer();
+        FindObjectOfType<TimerManager>()?.ResumeTimer();
     }
 
     void OnTriggerEnter(Collider other)
@@ -196,9 +179,7 @@ public class SceneSwitcher : MonoBehaviour
         {
             canEnter = false;
             if (!PlayerReturnPosition.HasTeleportedIntoRoom)
-            {
                 player = null;
-            }
         }
     }
 }

@@ -9,46 +9,53 @@ public class MuseumRoomBuilder : MonoBehaviour
     public GameObject ceilingPrefab;
 
     [Header("Exhibit Prefabs")]
-    public GameObject[] statuePrefabs;
+    public GameObject[] statuePrefabs; // index 1 uses a table
     public GameObject tablePrefab;
-    public GameObject[] framePrefabs;
-    public GameObject bookshelfPrefab;
 
     [Header("Fire Area Prefabs")]
     public GameObject firePrefab;
     public GameObject chairPrefab;
 
     [Header("Room Settings")]
-    public Vector3 roomSize = new Vector3(20, 5, 20);  // Width, Height, Depth
+    public Vector3 roomSize = new Vector3(40, 8, 40); // affects ceiling/wall size
+
+    public Vector3 FloorCenter => Vector3.zero;
+    public float FloorY => 0.1f;
 
     void Start()
     {
         BuildRoom();
-        PlaceStatues();
-        PlaceFrames();
-        PlaceBookshelf();
         PlaceFireAndChairs();
+        PlaceStatues();
     }
 
     void BuildRoom()
     {
-        // Floor
-        GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        floor.transform.localScale = new Vector3(roomSize.x / 10, 1, roomSize.z / 10);
-        floor.transform.position = Vector3.zero;
+        // === Floor ===
+        GameObject floor = Instantiate(floorPrefab, Vector3.zero, Quaternion.identity);
+        Vector3 floorScale = new Vector3(20, 1, 20);
+        floor.transform.localScale = floorScale;
         floor.name = "Floor";
 
-        // Ceiling
-        GameObject ceiling = Instantiate(ceilingPrefab, new Vector3(0, roomSize.y, 0), Quaternion.Euler(180, 0, 0));
-        ceiling.transform.localScale = new Vector3(roomSize.x / 10, 1, roomSize.z / 10);
+        if (floor.GetComponent<Collider>() == null)
+            floor.AddComponent<MeshCollider>();
+
+        float floorWidth = floorScale.x * 10f; // Unity plane unit = 10
+        float floorLength = floorScale.z * 10f;
+        float wallHeight = roomSize.y;
+
+        // === Ceiling ===
+        float ceilingHeight = wallHeight + 10f;
+        GameObject ceiling = Instantiate(ceilingPrefab, new Vector3(0, ceilingHeight, 0), Quaternion.Euler(180, 0, 0));
+        ceiling.transform.localScale = new Vector3(floorScale.x, 1, floorScale.z);
         ceiling.name = "Ceiling";
 
-        // 4 Walls with Windows
+        // === Walls ===
         Vector3[] wallPositions = {
-            new Vector3(0, roomSize.y / 2, -roomSize.z / 2), // back
-            new Vector3(0, roomSize.y / 2, roomSize.z / 2),  // front
-            new Vector3(-roomSize.x / 2, roomSize.y / 2, 0), // left
-            new Vector3(roomSize.x / 2, roomSize.y / 2, 0)   // right
+            new Vector3(0, wallHeight / 2f, -floorLength / 2f), // back
+            new Vector3(0, wallHeight / 2f, floorLength / 2f),  // front
+            new Vector3(-floorWidth / 2f, wallHeight / 2f, 0),  // left
+            new Vector3(floorWidth / 2f, wallHeight / 2f, 0)    // right
         };
 
         Vector3[] wallRotations = {
@@ -58,65 +65,75 @@ public class MuseumRoomBuilder : MonoBehaviour
             new Vector3(0, -90, 0)
         };
 
+        Vector3[] wallScales = {
+            new Vector3(floorScale.x, wallHeight / 5f, 1),  // back
+            new Vector3(floorScale.x, wallHeight / 5f, 1),  // front
+            new Vector3(floorScale.z, wallHeight / 5f, 1),  // left
+            new Vector3(floorScale.z, wallHeight / 5f, 1)   // right
+        };
+
         for (int i = 0; i < 4; i++)
         {
             GameObject wall = Instantiate(wallPrefab, wallPositions[i], Quaternion.Euler(wallRotations[i]));
-            wall.transform.localScale = new Vector3(roomSize.x / 10, roomSize.y / 5, 1);
+            wall.transform.localScale = wallScales[i];
             wall.name = $"Wall_{i + 1}";
 
-            // Window centered on the wall
-            GameObject window = Instantiate(windowPrefab, wallPositions[i], Quaternion.Euler(wallRotations[i]));
-            window.transform.position += new Vector3(0, 1.5f, 0);
+            GameObject window = Instantiate(windowPrefab, wallPositions[i] + new Vector3(0, 1.5f, 0), Quaternion.Euler(wallRotations[i]));
             window.name = $"Window_{i + 1}";
+        }
+    }
+
+
+    void PlaceFireAndChairs()
+    {
+        Vector3 center = Vector3.zero;
+
+        // Fire pit in the center
+        GameObject fire = Instantiate(firePrefab, center + Vector3.up * 0.1f, Quaternion.identity);
+        fire.transform.localScale *= 1.5f;
+        fire.name = "FirePit";
+
+        // Four chairs around fire
+        float chairRadius = 6f;
+        for (int i = 0; i < 4; i++)
+        {
+            float angle = i * 90f * Mathf.Deg2Rad;
+            Vector3 pos = center + new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * chairRadius;
+            Quaternion rot = Quaternion.LookRotation(center - pos);
+            GameObject chair = Instantiate(chairPrefab, pos + Vector3.up * 0.05f, rot);
+            chair.name = $"Chair_{i + 1}";
         }
     }
 
     void PlaceStatues()
     {
-        float spacing = 5f;
-        Vector3 start = new Vector3(-spacing * 1.5f, 0, -roomSize.z / 3);
+        Vector3 center = Vector3.zero;
+        float statueRadius = 12f;
+        int totalStatues = 16;
 
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < totalStatues; i++)
         {
-            Vector3 tablePos = start + new Vector3(spacing * i, 0, 0);
-            GameObject table = Instantiate(tablePrefab, tablePos, Quaternion.identity);
-            table.name = $"Table_{i + 1}";
+            float angle = i * (360f / totalStatues) * Mathf.Deg2Rad;
+            Vector3 pos = center + new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * statueRadius;
+            Quaternion rot = Quaternion.LookRotation(center - pos);
 
-            GameObject statue = Instantiate(statuePrefabs[i % statuePrefabs.Length], tablePos + new Vector3(0, 1.1f, 0), Quaternion.identity);
-            statue.name = $"Statue_{i + 1}";
-        }
-    }
+            int index = i % statuePrefabs.Length;
 
-    void PlaceFrames()
-    {
-        for (int i = 0; i < framePrefabs.Length; i++)
-        {
-            GameObject frame = Instantiate(framePrefabs[i], new Vector3(-roomSize.x / 2 + 0.1f, 2f + i * 1.5f, 0), Quaternion.Euler(0, 90, 0));
-            frame.name = $"Frame_{i + 1}";
-        }
-    }
+            if (index == 1)
+            {
+                // Only index 1 gets a table
+                GameObject table = Instantiate(tablePrefab, pos, Quaternion.identity);
+                table.name = $"StatueTable_{i}";
+                pos.y += 1.1f; // raise statue to sit on table
+            }
+            else
+            {
+                // Index 0 and 2 placed directly on floor
+                pos.y += 0.05f;
+            }
 
-    void PlaceBookshelf()
-    {
-        Vector3 corner = new Vector3(roomSize.x / 2 - 1, 0, roomSize.z / 2 - 1);
-        GameObject shelf = Instantiate(bookshelfPrefab, corner, Quaternion.Euler(0, -45, 0));
-        shelf.name = "Bookshelf";
-    }
-
-    void PlaceFireAndChairs()
-    {
-        Vector3 center = new Vector3(0, 0, 0);
-        GameObject fire = Instantiate(firePrefab, center + Vector3.up * 0.1f, Quaternion.identity);
-        fire.name = "FirePit";
-
-        float radius = 2f;
-        for (int i = 0; i < 4; i++)
-        {
-            float angle = i * 90f * Mathf.Deg2Rad;
-            Vector3 chairPos = center + new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * radius;
-            Quaternion rot = Quaternion.LookRotation(center - chairPos);
-            GameObject chair = Instantiate(chairPrefab, chairPos, rot);
-            chair.name = $"Chair_{i + 1}";
+            GameObject statue = Instantiate(statuePrefabs[index], pos, rot);
+            statue.name = $"Statue_{i}";
         }
     }
 }

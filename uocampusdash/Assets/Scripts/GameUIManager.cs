@@ -17,7 +17,7 @@ public class GameUIManager : MonoBehaviour
     void Update()
     {
         // Only navigate when inputEnabled is false
-        if (!StarterAssets.StarterAssetsInputs.inputEnabled)
+        if (!StarterAssetsInputs.inputEnabled)
         {
             if (Input.GetKeyDown(KeyCode.UpArrow))
             {
@@ -35,7 +35,7 @@ public class GameUIManager : MonoBehaviour
                 switch (selectedIndex)
                 {
                     case 0: // Start Game
-                        StarterAssets.StarterAssetsInputs.inputEnabled = true;
+                        StarterAssetsInputs.inputEnabled = true;
                         foreach (var btn in menuButtons) btn.SetActive(false);
                         FindObjectOfType<TimerManager>()?.StartTimer();
                         FindObjectOfType<MissionManager>()?.StartMission();
@@ -61,7 +61,7 @@ public class GameUIManager : MonoBehaviour
 
     public void ShowMainMenu()
     {
-        StarterAssets.StarterAssetsInputs.inputEnabled = false;
+        StarterAssetsInputs.inputEnabled = false;
         selectedIndex = 0;
         foreach (var btn in menuButtons)
             btn.SetActive(true);
