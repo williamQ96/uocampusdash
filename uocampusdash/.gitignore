@@ -73,3 +73,10 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 Assets/Triangularity/ColorfulCity/WebGLBuild/
+
+# Ignore large assets
+Assets/**/*.unity
+Assets/**/*.png
+Library/
+Build/
+UserSettings/
