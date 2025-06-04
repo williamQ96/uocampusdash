@@ -162,37 +162,37 @@ else
     }
 
     
-    private void OnMissionSuccess()
-    {
-        missionStarted = false;
-        targetBuilding = null;
+private void OnMissionSuccess()
+{
+    missionStarted = false;
+    targetBuilding = null;
 
-        if (missionText != null)
-            missionText.text = "Mission Complete!";
+    if (missionText != null)
+        missionText.text = "Mission Complete!";
 
-        // Pause the timer
-        var timer = Object.FindFirstObjectByType<TimerManager>();
-        if (timer != null)
-            timer.enabled = false;
+    var timer = Object.FindFirstObjectByType<TimerManager>();
+    if (timer != null)
+        timer.enabled = false;
 
-        // Show menu for successful mission (Continue / Exit)
-        MissionCompleteUIManager.Instance.ShowSuccessMenu();
-    }
+    CreditManager.Instance.AddCredits(100);
+    IncreaseLevel();
+
+    MissionCompleteUIManager.Instance.ShowRewardMenu();
+}
 
 
-    public void OnMissionFailure()
-    {
-        missionStarted = false;
-        targetBuilding = null;
 
-        // Stop timer
-        var timer = Object.FindFirstObjectByType<TimerManager>();
-        if (timer != null)
-            timer.enabled = false;
+public void OnMissionFailure()
+{
+    missionStarted = false;
+    targetBuilding = null;
 
-        // Show retry menu (Restart / Exit)
-        MissionCompleteUIManager.Instance.ShowFailureMenu();
-    }
+    var timer = Object.FindFirstObjectByType<TimerManager>();
+    if (timer != null)
+        timer.enabled = false;
+
+    MissionCompleteUIManager.Instance.ShowRewardMenu(); // Same reward panel
+}
 
  
     public void AddCreditAndLevel()
