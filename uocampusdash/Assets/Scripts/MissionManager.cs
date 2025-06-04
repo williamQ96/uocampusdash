@@ -177,7 +177,7 @@ private void OnMissionSuccess()
     CreditManager.Instance.AddCredits(100);
     IncreaseLevel();
 
-    MissionCompleteUIManager.Instance.ShowRewardMenu();
+    MissionCompleteUIManager.Instance.ShowRewardPanel();
 }
 
 
@@ -191,7 +191,7 @@ public void OnMissionFailure()
     if (timer != null)
         timer.enabled = false;
 
-    MissionCompleteUIManager.Instance.ShowRewardMenu(); // Same reward panel
+    MissionCompleteUIManager.Instance.ShowRewardPanel(); // Same reward panel
 }
 
  
@@ -218,7 +218,7 @@ public void OnMissionFailure()
         }
 
         // Hide success / failure menu
-        MissionCompleteUIManager.Instance.HideAllMenus();
+        MissionCompleteUIManager.Instance.HideRewardPanel();
 
         if (missionCompletePanel != null)
             missionCompletePanel.SetActive(false);
@@ -267,7 +267,7 @@ public void OnMissionFailure()
             levelText.text = "Level: " + currentLevel;
 
         CreditManager.Instance.AddCredits(100);
-        MissionCompleteUIManager.Instance.HideAllMenus();  // Hide both success/failure menu
+        MissionCompleteUIManager.Instance.HideRewardPanel();  // Hide both success/failure menu
 
         RestartMission(); // Start a new round
     }
@@ -277,7 +277,7 @@ public void OnMissionFailure()
         Debug.Log("[MissionManager] Exiting to main menu.");
 
         // Hide success/failure menu
-        MissionCompleteUIManager.Instance.HideAllMenus();
+        MissionCompleteUIManager.Instance.HideRewardPanel();
 
         if (missionText != null)
             missionText.gameObject.SetActive(false);
