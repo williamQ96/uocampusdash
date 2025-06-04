@@ -80,7 +80,7 @@ public class TimerManager : MonoBehaviour
 
         enabled = true; // Reactivate the script in case it was disabled
     }
-    // ✅ New methods to pause and resume
+    // New methods to pause and resume
     public void PauseTimer()
     {
         isPaused = true;
@@ -96,5 +96,10 @@ public class TimerManager : MonoBehaviour
         return remainingTime;
     }
 
+    public void AddTime(float seconds)
+    {
+        remainingTime += seconds;
+        Debug.Log($"⏳ Extra time added: {seconds} seconds. New remaining time: {remainingTime}");
+    }
 }
 

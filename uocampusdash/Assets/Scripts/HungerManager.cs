@@ -16,6 +16,8 @@ public class HungerManager : MonoBehaviour
     private bool hasTriggeredHungerGameOver = false;
     public float hungerReductionFactor = 1.0f;
 
+    private bool hungerFrozen = false;
+
     void Start()
     {
         if (hungerSlider != null)
@@ -30,8 +32,7 @@ public class HungerManager : MonoBehaviour
 
     void Update()
     {
-
-        if (MissionManager.Instance != null && MissionManager.Instance.IsMissionActive)
+        if (MissionManager.Instance != null && MissionManager.Instance.IsMissionActive && !hungerFrozen)
         {
             float remainingTime = timerManager != null ? timerManager.GetRemainingTime() : 60f;
             int level = MissionManager.Instance.GetCurrentLevel();
@@ -43,7 +44,7 @@ public class HungerManager : MonoBehaviour
             currentHunger += adjustedRate * Time.deltaTime * 5f;
             currentHunger = Mathf.Clamp(currentHunger, 0f, maxHunger);
 
-            Debug.Log($"📉 Current Hunger Speed Multiplier: x{hungerReductionFactor:F2}");
+            Debug.Log($"\ud83d\udcc9 Current Hunger Speed Multiplier: x{hungerReductionFactor:F2}");
 
             if (hungerSlider != null)
                 hungerSlider.value = currentHunger;
@@ -55,7 +56,7 @@ public class HungerManager : MonoBehaviour
             if (currentHunger >= maxHunger && !hasTriggeredHungerGameOver)
             {
                 hasTriggeredHungerGameOver = true;
-                Debug.Log("💀 Hunger reached 100%! Game Over due to starvation.");
+                Debug.Log("\ud83d\udc80 Hunger reached 100%! Game Over due to starvation.");
 
                 if (gameOverText != null)
                 {
@@ -94,11 +95,25 @@ public class HungerManager : MonoBehaviour
     private IEnumerator ReduceTemporarily(float factor, float duration)
     {
         hungerReductionFactor = factor;
-        Debug.Log($"🍽 Hunger speed temporarily reduced to x{factor} for {duration} sec");
+        Debug.Log($"\ud83c\udf7d Hunger speed temporarily reduced to x{factor} for {duration} sec");
 
         yield return new WaitForSeconds(duration);
 
         hungerReductionFactor = 1.0f;
-        Debug.Log("🔁 Hunger speed reset to normal (x1.0)");
+        Debug.Log("\ud83d\udd01 Hunger speed reset to normal (x1.0)");
+    }
+
+    public void SetHungerFrozen(float duration)
+    {
+        StartCoroutine(FreezeHunger(duration));
+    }
+
+    private IEnumerator FreezeHunger(float duration)
+    {
+        hungerFrozen = true;
+        Debug.Log("\u2744\ufe0f Hunger is now frozen.");
+        yield return new WaitForSeconds(duration);
+        hungerFrozen = false;
+        Debug.Log("\ud83d\udd01 Hunger is unfrozen.");
     }
 }
