@@ -15,6 +15,9 @@ public class SceneSwitcher : MonoBehaviour
 
     private bool canEnter = false;
     private GameObject player;
+    public GameObject playerPrefab;          // Drag your Player prefab in Inspector
+    public Transform campusSpawnPoint;       // Set your spawn point for returning to campus
+
 
     public string museumSceneName = "Museum";
     public string campusSceneName = "campus";
@@ -104,19 +107,94 @@ public class SceneSwitcher : MonoBehaviour
     }
 
 
+    // void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    // {
+    //     if (player != null)
+    //     {
+    //         Debug.Log("OnSceneLoaded: configuring player.");
+
+    //         var controller = player.GetComponent<CharacterController>();
+    //         if (controller != null) controller.enabled = true;
+    //         else Debug.LogError("CharacterController missing on Player!");
+
+    //         var thirdPerson = player.GetComponent<ThirdPersonController>();
+    //         if (thirdPerson != null) thirdPerson.enabled = true;
+    //         else Debug.LogError("ThirdPersonController missing on Player!");
+
+    //         var input = player.GetComponent<PlayerInput>();
+    //         if (input != null)
+    //         {
+    //             input.enabled = false;
+    //             input.enabled = true;
+    //         }
+    //         else Debug.LogError("PlayerInput missing on Player!");
+
+    //         var vcam = FindObjectOfType<CinemachineVirtualCamera>();
+    //         if (vcam != null)
+    //         {
+    //             var camRoot = player.transform.Find("PlayerCameraRoot");
+    //             if (camRoot != null)
+    //             {
+    //                 vcam.Follow = camRoot;
+    //                 vcam.LookAt = camRoot;
+    //             }
+    //             else
+    //             {
+    //                 Debug.LogError("PlayerCameraRoot not found!");
+    //             }
+    //         }
+    //         else
+    //         {
+    //             Debug.LogError("CinemachineVirtualCamera not found in scene.");
+    //         }
+
+    //         Cursor.lockState = CursorLockMode.Locked;
+    //         Cursor.visible = false;
+    //         StarterAssetsInputs.inputEnabled = true;
+    //     }
+    //     else
+    //     {
+    //         Debug.LogError("Player reference is null after scene load.");
+    //     }
+
+    //     SceneManager.sceneLoaded -= OnSceneLoaded;
+    // }
+
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
+    {                                               
+        // If returning to campus, destroy old player and create a new one
+        if (scene.name == campusSceneName)
+        {
+            GameObject oldPlayer = GameObject.FindGameObjectWithTag("Player");
+            if (oldPlayer != null)
+            {
+                Destroy(oldPlayer);
+                Debug.Log("🧹 Old player destroyed.");
+            }
+
+            if (playerPrefab == null)
+            {
+                Debug.LogError("❌ PlayerPrefab not assigned in inspector.");
+                return;
+            }
+
+            Vector3 spawnPos = campusSpawnPoint != null ? campusSpawnPoint.position : Vector3.zero;
+            player = Instantiate(playerPrefab, spawnPos, Quaternion.identity);
+            player.name = "Player";
+
+            Debug.Log("✅ New player instantiated at spawn point.");
+        }
+
+        // Reconnect camera and controls (for both Museum and Campus)
         if (player != null)
         {
-            Debug.Log("OnSceneLoaded: configuring player.");
+            player.SetActive(true);
 
             var controller = player.GetComponent<CharacterController>();
             if (controller != null) controller.enabled = true;
-            else Debug.LogError("CharacterController missing on Player!");
 
             var thirdPerson = player.GetComponent<ThirdPersonController>();
             if (thirdPerson != null) thirdPerson.enabled = true;
-            else Debug.LogError("ThirdPersonController missing on Player!");
 
             var input = player.GetComponent<PlayerInput>();
             if (input != null)
@@ -124,38 +202,25 @@ public class SceneSwitcher : MonoBehaviour
                 input.enabled = false;
                 input.enabled = true;
             }
-            else Debug.LogError("PlayerInput missing on Player!");
 
-            var vcam = FindObjectOfType<CinemachineVirtualCamera>();
-            if (vcam != null)
+            var cam = FindObjectOfType<Cinemachine.CinemachineVirtualCamera>();
+            var camTarget = player.transform.Find("PlayerCameraRoot");
+            if (cam != null && camTarget != null)
             {
-                var camRoot = player.transform.Find("PlayerCameraRoot");
-                if (camRoot != null)
-                {
-                    vcam.Follow = camRoot;
-                    vcam.LookAt = camRoot;
-                }
-                else
-                {
-                    Debug.LogError("PlayerCameraRoot not found!");
-                }
-            }
-            else
-            {
-                Debug.LogError("CinemachineVirtualCamera not found in scene.");
+                cam.Follow = camTarget;
+                cam.LookAt = camTarget;
             }
 
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
             StarterAssetsInputs.inputEnabled = true;
-        }
-        else
-        {
-            Debug.LogError("Player reference is null after scene load.");
+
+            Debug.Log("Player control re-enabled.");
         }
 
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
+
 
 
     void EnterRestaurant()

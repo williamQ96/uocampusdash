@@ -9,7 +9,7 @@ public class MuseumRoomBuilder : MonoBehaviour
     public GameObject ceilingPrefab;
 
     [Header("Exhibit Prefabs")]
-    public GameObject[] statuePrefabs; // index 1 uses a table
+    public GameObject[] statuePrefabs; // index 1 uses a table, index 2 floats
     public GameObject tablePrefab;
 
     [Header("Fire Area Prefabs")]
@@ -17,10 +17,9 @@ public class MuseumRoomBuilder : MonoBehaviour
     public GameObject chairPrefab;
 
     [Header("Room Settings")]
-    public Vector3 roomSize = new Vector3(40, 8, 40); // affects ceiling/wall size
+    public Vector3 roomSize = new Vector3(40, 10, 40); // width, height, length
 
     public Vector3 FloorCenter => Vector3.zero;
-    public float FloorY => 0.1f;
 
     void Start()
     {
@@ -32,30 +31,26 @@ public class MuseumRoomBuilder : MonoBehaviour
     void BuildRoom()
     {
         // === Floor ===
+        Vector3 floorScale = new Vector3(40, 1, 40); // Unity Plane base is 10x10 → 400x400 world units
         GameObject floor = Instantiate(floorPrefab, Vector3.zero, Quaternion.identity);
-        Vector3 floorScale = new Vector3(20, 1, 20);
         floor.transform.localScale = floorScale;
         floor.name = "Floor";
 
         if (floor.GetComponent<Collider>() == null)
             floor.AddComponent<MeshCollider>();
 
-        float floorWidth = floorScale.x * 10f; // Unity plane unit = 10
-        float floorLength = floorScale.z * 10f;
+        float unitSize = 10f; // Plane base size
+        float actualWidth = floorScale.x * unitSize;
+        float actualLength = floorScale.z * unitSize;
         float wallHeight = roomSize.y;
-
-        // === Ceiling ===
-        float ceilingHeight = wallHeight + 10f;
-        GameObject ceiling = Instantiate(ceilingPrefab, new Vector3(0, ceilingHeight, 0), Quaternion.Euler(180, 0, 0));
-        ceiling.transform.localScale = new Vector3(floorScale.x, 1, floorScale.z);
-        ceiling.name = "Ceiling";
+        float wallThickness = 0.5f;
 
         // === Walls ===
         Vector3[] wallPositions = {
-            new Vector3(0, wallHeight / 2f, -floorLength / 2f), // back
-            new Vector3(0, wallHeight / 2f, floorLength / 2f),  // front
-            new Vector3(-floorWidth / 2f, wallHeight / 2f, 0),  // left
-            new Vector3(floorWidth / 2f, wallHeight / 2f, 0)    // right
+            new Vector3(0, wallHeight / 2f, -actualLength / 2f), // back
+            new Vector3(0, wallHeight / 2f, actualLength / 2f),  // front
+            new Vector3(-actualWidth / 2f, wallHeight / 2f, 0),  // left
+            new Vector3(actualWidth / 2f, wallHeight / 2f, 0)    // right
         };
 
         Vector3[] wallRotations = {
@@ -66,10 +61,10 @@ public class MuseumRoomBuilder : MonoBehaviour
         };
 
         Vector3[] wallScales = {
-            new Vector3(floorScale.x, wallHeight / 5f, 1),  // back
-            new Vector3(floorScale.x, wallHeight / 5f, 1),  // front
-            new Vector3(floorScale.z, wallHeight / 5f, 1),  // left
-            new Vector3(floorScale.z, wallHeight / 5f, 1)   // right
+            new Vector3(actualWidth, wallHeight, wallThickness),
+            new Vector3(actualWidth, wallHeight, wallThickness),
+            new Vector3(actualLength, wallHeight, wallThickness),
+            new Vector3(actualLength, wallHeight, wallThickness)
         };
 
         for (int i = 0; i < 4; i++)
@@ -81,29 +76,39 @@ public class MuseumRoomBuilder : MonoBehaviour
             GameObject window = Instantiate(windowPrefab, wallPositions[i] + new Vector3(0, 1.5f, 0), Quaternion.Euler(wallRotations[i]));
             window.name = $"Window_{i + 1}";
         }
+
+        // === Ceiling ===
+        float ceilingY = wallHeight;
+        GameObject ceiling = Instantiate(ceilingPrefab, new Vector3(0, ceilingY, 0), Quaternion.identity);
+        ceiling.transform.localScale = floorScale;
+        ceiling.name = "Ceiling";
     }
+
 
 
     void PlaceFireAndChairs()
     {
         Vector3 center = Vector3.zero;
 
-        // Fire pit in the center
+        // Place fire pit
         GameObject fire = Instantiate(firePrefab, center + Vector3.up * 0.1f, Quaternion.identity);
         fire.transform.localScale *= 1.5f;
         fire.name = "FirePit";
 
-        // Four chairs around fire
-        float chairRadius = 6f;
+        // Place chairs around fire
+        float chairRadius = 8f;
         for (int i = 0; i < 4; i++)
         {
             float angle = i * 90f * Mathf.Deg2Rad;
             Vector3 pos = center + new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * chairRadius;
             Quaternion rot = Quaternion.LookRotation(center - pos);
+
             GameObject chair = Instantiate(chairPrefab, pos + Vector3.up * 0.05f, rot);
             chair.name = $"Chair_{i + 1}";
+            chair.transform.localScale *= 2f; // Enlarge chair
         }
     }
+
 
     void PlaceStatues()
     {
@@ -121,19 +126,23 @@ public class MuseumRoomBuilder : MonoBehaviour
 
             if (index == 1)
             {
-                // Only index 1 gets a table
                 GameObject table = Instantiate(tablePrefab, pos, Quaternion.identity);
                 table.name = $"StatueTable_{i}";
-                pos.y += 1.1f; // raise statue to sit on table
+                pos.y += 1.1f;
+            }
+            else if (index == 2)
+            {
+                pos.y += 3f; // floating
             }
             else
             {
-                // Index 0 and 2 placed directly on floor
                 pos.y += 0.05f;
             }
 
             GameObject statue = Instantiate(statuePrefabs[index], pos, rot);
             statue.name = $"Statue_{i}";
+
+            statue.AddComponent<Rotator>();
         }
     }
 }
