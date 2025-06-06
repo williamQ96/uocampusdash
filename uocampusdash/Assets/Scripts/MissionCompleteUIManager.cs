@@ -13,12 +13,16 @@ public class MissionCompleteUIManager : MonoBehaviour
     private Button[] currentButtons;
     private int selectedIndex = 0;
 
+    private GameUIManager gameUI;
+
     void Awake()
     {
         if (Instance == null)
             Instance = this;
         else
             Destroy(gameObject);
+
+        gameUI = FindObjectOfType<GameUIManager>();
     }
 
     void Update()
@@ -79,5 +83,26 @@ public class MissionCompleteUIManager : MonoBehaviour
         failureMenu.SetActive(false);
         currentButtons = null;
         gameObject.SetActive(false);
+    }
+
+    public void OnSuccessContinue()
+    {
+        HideAllMenus();
+        MissionManager.Instance.ContinueMission();
+    }
+
+    public void OnExitToMainMenu()
+    {
+        HideAllMenus();
+        if (gameUI != null)
+            gameUI.ShowMainMenu(); 
+        else
+            Debug.LogError("GameUIManager not found.");
+    }
+
+    public void OnFailureRestart()
+    {
+        HideAllMenus();
+        MissionManager.Instance.RestartMission(); 
     }
 }

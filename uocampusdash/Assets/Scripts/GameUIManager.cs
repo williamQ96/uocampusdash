@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 public class GameUIManager : MonoBehaviour
 {
@@ -16,7 +17,6 @@ public class GameUIManager : MonoBehaviour
 
     void Update()
     {
-        // Only navigate when inputEnabled is false
         if (!StarterAssetsInputs.inputEnabled)
         {
             if (Input.GetKeyDown(KeyCode.UpArrow))
@@ -35,14 +35,22 @@ public class GameUIManager : MonoBehaviour
                 switch (selectedIndex)
                 {
                     case 0: // Start Game
-                        StarterAssetsInputs.inputEnabled = true;
-                        foreach (var btn in menuButtons) btn.SetActive(false);
-                        FindObjectOfType<TimerManager>()?.StartTimer();
-                        FindObjectOfType<MissionManager>()?.StartMission();
-                        break;
+                    StarterAssetsInputs.inputEnabled = true;
+
+                    // 👉 Hide the exit message if it's visible
+                    if (exitText != null)
+                        exitText.gameObject.SetActive(false);
+
+                    foreach (var btn in menuButtons)
+                        btn.SetActive(false);
+
+                    FindObjectOfType<TimerManager>()?.StartTimer();
+                    FindObjectOfType<MissionManager>()?.StartMission();
+                    break;
+
 
                     case 1: // Exit Game
-                        ExitGame();
+                        StartCoroutine(ExitGameSequence());
                         break;
                 }
             }
@@ -68,16 +76,27 @@ public class GameUIManager : MonoBehaviour
         UpdateButtonVisuals();
     }
 
-    public void ExitGame()
+    IEnumerator ExitGameSequence()
     {
         Debug.Log("[UI] ExitGame called.");
+
 #if UNITY_WEBGL
         if (exitText != null)
         {
             exitText.gameObject.SetActive(true);
             exitText.text = "Thanks for playing!";
         }
+
+        yield return new WaitForSeconds(3f);  // Wait 3 seconds to show message
+        // WebGL does not support Application.Quit, so do nothing after
 #else
+        if (exitText != null)
+        {
+            exitText.gameObject.SetActive(true);
+            exitText.text = "Thanks for playing!";
+        }
+
+        yield return new WaitForSeconds(1f);
         Application.Quit();
 #endif
     }
