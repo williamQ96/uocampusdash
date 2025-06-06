@@ -6,7 +6,7 @@ public class MissionCompleteUIManager : MonoBehaviour
 {
     public static MissionCompleteUIManager Instance;
 
-    public GameObject rewardPanel; // ← only this needed now
+    public GameObject rewardPanel;
 
     private Button[] currentButtons;
     private int selectedIndex = 0;
@@ -57,6 +57,7 @@ public class MissionCompleteUIManager : MonoBehaviour
 
     public void ShowRewardPanel()
     {
+        gameObject.SetActive(true);
         rewardPanel.SetActive(true);
         currentButtons = rewardPanel.GetComponentsInChildren<Button>();
         selectedIndex = 0;
@@ -66,6 +67,7 @@ public class MissionCompleteUIManager : MonoBehaviour
     public void HideRewardPanel()
     {
         rewardPanel.SetActive(false);
+        gameObject.SetActive(false);
         currentButtons = null;
     }
 }

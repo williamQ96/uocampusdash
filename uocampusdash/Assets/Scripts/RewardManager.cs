@@ -8,9 +8,10 @@ using StarterAssets;
 public class RewardManager : MonoBehaviour
 {
     [Header("UI References")]
-    [SerializeField] private Button[] optionButtons;   // First 3: rewards, Last 2: Continue + Menu
+    [SerializeField] private Button[] optionButtons;
     [SerializeField] private Button refreshButton;
     [SerializeField] private TextMeshProUGUI refreshText;
+    [SerializeField] private TextMeshProUGUI notificationText;
 
     [Header("Refresh Settings")]
     [SerializeField] private int baseRefreshCost = 10;
@@ -31,21 +32,21 @@ public class RewardManager : MonoBehaviour
 
     private void OnEnable()
     {
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
         refreshCount = 0;
         UpdateRefreshCost();
         PopulateRewards();
 
-        // Collect all buttons in order
         allButtons.Clear();
-        for (int i = 0; i < optionButtons.Length; i++)
-            allButtons.Add(optionButtons[i]);
-        allButtons.Add(refreshButton);  // 6th button
+        foreach (var btn in optionButtons) allButtons.Add(btn);
+        allButtons.Add(refreshButton);
 
+        DisableMouseRaycasts();
         selectedIndex = 0;
         UpdateVisuals();
     }
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.UpArrow))
@@ -64,14 +65,15 @@ public class RewardManager : MonoBehaviour
         }
     }
 
-
     private void UpdateVisuals()
     {
         for (int i = 0; i < allButtons.Count; i++)
         {
             var text = allButtons[i].GetComponentInChildren<TextMeshProUGUI>();
             if (text != null)
-                text.color = (i == selectedIndex) ? Color.yellow : Color.white;
+                text.color = (i == selectedIndex)
+                    ? new Color(1f, 1f, 0f, 1f)
+                    : new Color(0f, 0f, 0f, 1f);
         }
     }
 
@@ -79,12 +81,25 @@ public class RewardManager : MonoBehaviour
     {
         return new List<RewardOption>
         {
-            new RewardOption("Speed +1", Tier.Green, 10),
-            new RewardOption("Speed +2", Tier.Blue, 20),
-            new RewardOption("Speed +3", Tier.Purple, 30),
-            new RewardOption("Sprint Limit +2s", Tier.Green, 10),
-            new RewardOption("Sprint Limit +5s", Tier.Blue, 20),
-            new RewardOption("Jump +1", Tier.Purple, 30)
+            new RewardOption("Speed +1", Tier.Green, 20),
+            new RewardOption("Speed +2", Tier.Blue, 40),
+            new RewardOption("Speed +4", Tier.Purple, 60),
+
+            new RewardOption("Sprint +5", Tier.Green, 20),
+            new RewardOption("Sprint +10", Tier.Blue, 40),
+            new RewardOption("Sprint +15", Tier.Purple, 60),
+
+            new RewardOption("Jump +0.5", Tier.Green, 20),
+            new RewardOption("Jump +1.0", Tier.Blue, 40),
+            new RewardOption("Jump +1.5", Tier.Purple, 60),
+
+            new RewardOption("Jump Timeout -0.1", Tier.Green, 20),
+            new RewardOption("Jump Timeout -0.2", Tier.Blue, 40),
+            new RewardOption("Jump Timeout -0.3", Tier.Purple, 60),
+
+            new RewardOption("Fall Timeout -0.05", Tier.Green, 20),
+            new RewardOption("Fall Timeout -0.1", Tier.Blue, 40),
+            new RewardOption("Fall Timeout -0.15", Tier.Purple, 60),
         };
     }
 
@@ -94,7 +109,7 @@ public class RewardManager : MonoBehaviour
         var shuffled = new List<RewardOption>(rewardOptions);
         shuffled.Shuffle();
 
-        for (int i = 0; i < 3; i++) // Assume first 3 buttons are reward slots
+        for (int i = 0; i < 3; i++)
         {
             var btn = optionButtons[i];
             var reward = shuffled[i];
@@ -115,15 +130,16 @@ public class RewardManager : MonoBehaviour
 
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(() => TryPurchase(reward));
+            btn.navigation = new Navigation { mode = Navigation.Mode.None };
         }
 
-        // Setup Continue
         optionButtons[3].onClick.RemoveAllListeners();
-        optionButtons[3].onClick.AddListener(() => MissionManager.Instance.ContinueMission());
-
-        // Setup Return to Menu
+        optionButtons[3].onClick.AddListener(() => MissionManager.Instance.RestartMission());
         optionButtons[4].onClick.RemoveAllListeners();
         optionButtons[4].onClick.AddListener(() => MissionManager.Instance.BackToMainMenu());
+
+        refreshButton.onClick.RemoveAllListeners();
+        refreshButton.onClick.AddListener(OnRefreshClicked);
     }
 
     private void TryPurchase(RewardOption reward)
@@ -131,7 +147,7 @@ public class RewardManager : MonoBehaviour
         var cm = CreditManager.Instance;
         if (cm == null || cm.GetCredits() < reward.Cost)
         {
-            Debug.Log("[RewardManager] Not enough credits.");
+            ShowNotification("Not enough credits!");
             return;
         }
 
@@ -150,7 +166,7 @@ public class RewardManager : MonoBehaviour
             if (txt != null) txt.color = new Color(0.5f, 0.5f, 0.5f, 1);
         }
 
-        Debug.Log($"[RewardManager] Purchased: {reward.Name}");
+        ShowNotification($"Purchased: {reward.Name}");
     }
 
     private void ApplyReward(RewardOption reward)
@@ -160,10 +176,25 @@ public class RewardManager : MonoBehaviour
 
         switch (reward.Name)
         {
-            case "Speed +1": player.MoveSpeed += 1f; player.SprintSpeed += 1.5f; break;
-            case "Speed +2": player.MoveSpeed += 2f; player.SprintSpeed += 3f; break;
-            case "Speed +3": player.MoveSpeed += 3f; player.SprintSpeed += 4.5f; break;
-            case "Jump +1": player.JumpHeight += 0.5f; break;
+            case "Speed +1": player.MoveSpeed += 1f; break;
+            case "Speed +2": player.MoveSpeed += 2f; break;
+            case "Speed +4": player.MoveSpeed += 4f; break;
+
+            case "Sprint +5": player.SprintSpeed += 5f; break;
+            case "Sprint +10": player.SprintSpeed += 10f; break;
+            case "Sprint +15": player.SprintSpeed += 15f; break;
+
+            case "Jump +0.5": player.JumpHeight += 0.5f; break;
+            case "Jump +1.0": player.JumpHeight += 1.0f; break;
+            case "Jump +1.5": player.JumpHeight += 1.5f; break;
+
+            case "Jump Timeout -0.1": player.JumpTimeout = Mathf.Max(0, player.JumpTimeout - 0.1f); break;
+            case "Jump Timeout -0.2": player.JumpTimeout = Mathf.Max(0, player.JumpTimeout - 0.2f); break;
+            case "Jump Timeout -0.3": player.JumpTimeout = Mathf.Max(0, player.JumpTimeout - 0.3f); break;
+
+            case "Fall Timeout -0.05": player.FallTimeout = Mathf.Max(0, player.FallTimeout - 0.05f); break;
+            case "Fall Timeout -0.1": player.FallTimeout = Mathf.Max(0, player.FallTimeout - 0.1f); break;
+            case "Fall Timeout -0.15": player.FallTimeout = Mathf.Max(0, player.FallTimeout - 0.15f); break;
         }
     }
 
@@ -179,7 +210,7 @@ public class RewardManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("[RewardManager] Not enough credits to refresh.");
+            ShowNotification("Not enough credits to refresh!");
         }
     }
 
@@ -190,6 +221,30 @@ public class RewardManager : MonoBehaviour
             refreshText.text = $"Refresh: {currentRefreshCost} Credits";
     }
 
+    private void DisableMouseRaycasts()
+    {
+        foreach (var graphic in GetComponentsInChildren<Graphic>())
+        {
+            graphic.raycastTarget = false;
+        }
+    }
+
+    private void ShowNotification(string message)
+    {
+        if (notificationText != null)
+        {
+            notificationText.text = message;
+            CancelInvoke(nameof(ClearNotification));
+            Invoke(nameof(ClearNotification), 2f);
+        }
+    }
+
+    private void ClearNotification()
+    {
+        if (notificationText != null)
+            notificationText.text = "";
+    }
+
     private Color GetTierColor(Tier tier) => tier switch
     {
         Tier.Green => new Color(0.1f, 0.6f, 0.1f, 0.8f),
@@ -197,12 +252,10 @@ public class RewardManager : MonoBehaviour
         Tier.Purple => new Color(0.5f, 0.1f, 0.6f, 0.8f),
         _ => Color.white,
     };
-
-
-
-
 }
+
 public enum Tier { Green, Blue, Purple }
+
 public class RewardOption
 {
     public string Name { get; }
