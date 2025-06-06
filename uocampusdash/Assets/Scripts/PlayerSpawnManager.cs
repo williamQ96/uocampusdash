@@ -12,7 +12,7 @@ public class PlayerSpawnManager : MonoBehaviour
 
 IEnumerator DelayedPositioning()
 {
-    yield return null;
+    yield return new WaitForSeconds(0.2f);
 
     GameObject player = GameObject.FindGameObjectWithTag("Player");
     if (player == null)
@@ -28,7 +28,7 @@ IEnumerator DelayedPositioning()
         yield break;
     }
 
-    // 取得地板中心與高度
+    // Get the floor y position
     Vector3 spawnPosition = builder.FloorCenter + Vector3.up * 0.1f;
 
     CharacterController controller = player.GetComponent<CharacterController>();

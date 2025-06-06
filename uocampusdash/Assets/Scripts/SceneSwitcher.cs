@@ -30,37 +30,60 @@ public class SceneSwitcher : MonoBehaviour
                 roomSpawnPoint = layout.playerSpawnPoint;
         }
 
-        missionManager ??= FindObjectOfType<MissionManager>();
-        foodMenuUI ??= FindObjectOfType<FoodMenuUI>();
+        if (missionManager == null)
+        {
+            missionManager = FindObjectOfType<MissionManager>();
+            if (missionManager == null)
+                Debug.LogWarning("No MissionManager found.");
+        }
+
+        if (foodMenuUI == null)
+        {
+            foodMenuUI = FindObjectOfType<FoodMenuUI>();
+            if (foodMenuUI == null)
+                Debug.LogError("FoodMenuUI not found in scene. Please assign manually.");
+        }
     }
 
     IEnumerator ShowFoodMenuDelayed()
     {
         yield return new WaitForSeconds(1f);
         if (foodMenuUI != null)
+        {
+            Debug.Log("Calling foodMenuUI.ShowMenu()");
             foodMenuUI.ShowMenu();
+        }
     }
 
     void Update()
     {
-        if (canEnter && Input.GetKeyDown(KeyCode.E) && player != null)
+        if (canEnter && Input.GetKeyDown(KeyCode.E))
         {
+            Debug.Log("Attempting to enter restaurant.");
+
             if (missionManager == null || missionManager.IsMissionActive)
             {
                 EnterRestaurant();
-                StartCoroutine(ShowFoodMenuDelayed());
+                Debug.Log("Entered restaurant.");
+            }
+            else
+            {
+                Debug.LogWarning("You can only enter the restaurant during an active mission.");
             }
         }
 
         if (PlayerReturnPosition.HasTeleportedIntoRoom && Input.GetKeyDown(KeyCode.H))
         {
             ExitRestaurant();
-            foodMenuUI?.ForceCloseMenu();
+            if (foodMenuUI != null)
+            {
+                foodMenuUI.ForceCloseMenu();
+            }
         }
 
+        // ✅ Go to Museum Scene
         if (canEnter && Input.GetKeyDown(KeyCode.B) && player != null)
         {
-            // Disable movement before scene change
             var controller = player.GetComponent<CharacterController>();
             if (controller != null) controller.enabled = false;
 
@@ -72,6 +95,7 @@ public class SceneSwitcher : MonoBehaviour
             SceneManager.LoadScene(museumSceneName);
         }
 
+        // ✅ Return from Museum to campus
         if (SceneManager.GetActiveScene().name == museumSceneName && Input.GetKeyDown(KeyCode.H))
         {
             SceneManager.sceneLoaded += OnSceneLoaded;
@@ -79,27 +103,20 @@ public class SceneSwitcher : MonoBehaviour
         }
     }
 
+
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if (player != null)
         {
-            player.SetActive(true);
+            Debug.Log("OnSceneLoaded: configuring player.");
 
-            // ✅ Re-bind Cinemachine camera
-            var vcam = FindObjectOfType<CinemachineVirtualCamera>();
-            if (vcam != null)
-            {
-                var camRoot = player.transform.Find("PlayerCameraRoot");
-                vcam.Follow = camRoot;
-                vcam.LookAt = camRoot;
-            }
-
-            // ✅ Re-enable movement scripts
             var controller = player.GetComponent<CharacterController>();
             if (controller != null) controller.enabled = true;
+            else Debug.LogError("CharacterController missing on Player!");
 
             var thirdPerson = player.GetComponent<ThirdPersonController>();
             if (thirdPerson != null) thirdPerson.enabled = true;
+            else Debug.LogError("ThirdPersonController missing on Player!");
 
             var input = player.GetComponent<PlayerInput>();
             if (input != null)
@@ -107,51 +124,111 @@ public class SceneSwitcher : MonoBehaviour
                 input.enabled = false;
                 input.enabled = true;
             }
+            else Debug.LogError("PlayerInput missing on Player!");
 
-            // ✅ Re-enable input + cursor lock
+            var vcam = FindObjectOfType<CinemachineVirtualCamera>();
+            if (vcam != null)
+            {
+                var camRoot = player.transform.Find("PlayerCameraRoot");
+                if (camRoot != null)
+                {
+                    vcam.Follow = camRoot;
+                    vcam.LookAt = camRoot;
+                }
+                else
+                {
+                    Debug.LogError("PlayerCameraRoot not found!");
+                }
+            }
+            else
+            {
+                Debug.LogError("CinemachineVirtualCamera not found in scene.");
+            }
+
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
-
             StarterAssetsInputs.inputEnabled = true;
-
-            Debug.Log($"🟢 Player ready in scene '{scene.name}', inputEnabled: {StarterAssetsInputs.inputEnabled}");
+        }
+        else
+        {
+            Debug.LogError("Player reference is null after scene load.");
         }
 
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
+
     void EnterRestaurant()
     {
-        if (player == null || roomSpawnPoint == null) return;
+        if (player == null) return;
+
+        bool wasInactive = !roomInterior.activeSelf;
+        if (wasInactive)
+            roomInterior.SetActive(true);
+
+        var layout = roomInterior.GetComponent<RestaurantLayout>();
+        if (layout != null)
+        {
+            roomSpawnPoint = layout.playerSpawnPoint;
+        }
+        else
+        {
+            Debug.LogWarning("RestaurantLayout component not found on roomInterior.");
+        }
+
+        if (wasInactive)
+            roomInterior.SetActive(false);
+
+        if (roomSpawnPoint == null)
+        {
+            Debug.LogError("roomSpawnPoint is null.");
+            return;
+        }
 
         PlayerReturnPosition.LastOutsidePosition = player.transform.position;
         PlayerReturnPosition.LastOutsideRotation = player.transform.rotation;
         PlayerReturnPosition.HasRecordedOutside = true;
 
-        roomInterior?.SetActive(true);
-        buildingExterior?.SetActive(false);
+        roomInterior.SetActive(true);
+        if (buildingExterior != null) buildingExterior.SetActive(false);
 
+        Vector3 targetPos = roomSpawnPoint.position + Vector3.up * 0.1f;
         CharacterController controller = player.GetComponent<CharacterController>();
+
         if (controller != null)
         {
             controller.enabled = false;
-            player.transform.position = roomSpawnPoint.position + Vector3.up * 0.1f;
+            player.transform.position = targetPos;
             controller.enabled = true;
+        }
+        else
+        {
+            player.transform.position = targetPos;
         }
 
         PlayerReturnPosition.HasTeleportedIntoRoom = true;
-        FindObjectOfType<TimerManager>()?.PauseTimer();
+
+        TimerManager timer = FindAnyObjectByType<TimerManager>();
+        if (timer != null)
+            timer.PauseTimer();
+
+        StartCoroutine(ShowFoodMenuDelayed());
     }
 
     void ExitRestaurant()
     {
-        foodMenuUI?.ForceCloseMenu();
+        if (foodMenuUI != null)
+        {
+            FoodMenuUI.Instance.ForceCloseMenu();
+        }
+
         if (player == null) return;
 
-        roomInterior?.SetActive(false);
-        buildingExterior?.SetActive(true);
+        if (roomInterior != null) roomInterior.SetActive(false);
+        if (buildingExterior != null) buildingExterior.SetActive(true);
 
         CharacterController controller = player.GetComponent<CharacterController>();
+
         if (controller != null)
         {
             controller.enabled = false;
@@ -159,9 +236,17 @@ public class SceneSwitcher : MonoBehaviour
             player.transform.rotation = PlayerReturnPosition.LastOutsideRotation;
             controller.enabled = true;
         }
+        else
+        {
+            player.transform.position = PlayerReturnPosition.LastOutsidePosition;
+            player.transform.rotation = PlayerReturnPosition.LastOutsideRotation;
+        }
 
         PlayerReturnPosition.HasTeleportedIntoRoom = false;
-        FindObjectOfType<TimerManager>()?.ResumeTimer();
+
+        TimerManager timer = FindAnyObjectByType<TimerManager>();
+        if (timer != null)
+            timer.ResumeTimer();
     }
 
     void OnTriggerEnter(Collider other)
@@ -179,7 +264,9 @@ public class SceneSwitcher : MonoBehaviour
         {
             canEnter = false;
             if (!PlayerReturnPosition.HasTeleportedIntoRoom)
+            {
                 player = null;
+            }
         }
     }
 }
