@@ -40,9 +40,20 @@ public class MissionManager : MonoBehaviour
     void Start()
     {
         // Filter out empty name buildings
-        buildings = FindObjectsOfType<BuildingName>()
-                    .Where(b => !string.IsNullOrWhiteSpace(b.buildingName))
-                    .ToArray();
+// Only include buildings that are children of the "buildings" GameObject
+GameObject buildingRoot = GameObject.Find("buildings");
+
+if (buildingRoot != null)
+{
+    buildings = buildingRoot.GetComponentsInChildren<BuildingName>(true)
+                            .Where(b => !string.IsNullOrWhiteSpace(b.buildingName))
+                            .ToArray();
+}
+else
+{
+    Debug.LogError("❌ Cannot find GameObject named 'buildings' in hierarchy.");
+    buildings = new BuildingName[0];
+}
 
         // Initialize level display
         if (levelText != null)
@@ -69,13 +80,13 @@ public class MissionManager : MonoBehaviour
     void Update()
     {
         // If a mission is active and has a target, check distance
-        if (missionStarted && targetBuilding != null)
+        Vector3 playerXZ = new Vector3(player.transform.position.x, 0, player.transform.position.z);
+        Vector3 targetXZ = new Vector3(targetBuilding.position.x, 0, targetBuilding.position.z);
+        float flatDistance = Vector3.Distance(playerXZ, targetXZ);
+
+        if (flatDistance <= successDistance)
         {
-            float distance = Vector3.Distance(player.transform.position, targetBuilding.position);
-            if (distance <= successDistance)
-            {
-                OnMissionSuccess();
-            }
+            OnMissionSuccess();
         }
     }
 
@@ -110,7 +121,7 @@ public class MissionManager : MonoBehaviour
             Vector3[] directions = { Vector3.forward, Vector3.back, Vector3.left, Vector3.right };
             Vector3 randomDir = directions[Random.Range(0, directions.Length)];
             spawnPos = buildings[spawnIndex].transform.position + randomDir * 10f;
-            spawnPos.y = 0;
+            spawnPos.y = 2f;
             tries++;
         } while (tries < maxTries &&
                  Vector3.Distance(spawnPos, buildings[targetIndex].transform.position) < minDistanceFromTarget);
@@ -151,37 +162,37 @@ public class MissionManager : MonoBehaviour
     }
 
     
-    private void OnMissionSuccess()
-    {
-        missionStarted = false;
-        targetBuilding = null;
+private void OnMissionSuccess()
+{
+    missionStarted = false;
+    targetBuilding = null;
 
-        if (missionText != null)
-            missionText.text = "Mission Complete!";
+    if (missionText != null)
+        missionText.text = "Mission Complete!";
 
-        // Pause the timer
-        var timer = Object.FindFirstObjectByType<TimerManager>();
-        if (timer != null)
-            timer.enabled = false;
+    var timer = Object.FindFirstObjectByType<TimerManager>();
+    if (timer != null)
+        timer.enabled = false;
 
-        // Show menu for successful mission (Continue / Exit)
-        MissionCompleteUIManager.Instance.ShowSuccessMenu();
-    }
+    CreditManager.Instance.AddCredits(100);
+    IncreaseLevel();
+
+    MissionCompleteUIManager.Instance.ShowRewardPanel();
+}
 
 
-    public void OnMissionFailure()
-    {
-        missionStarted = false;
-        targetBuilding = null;
 
-        // Stop timer
-        var timer = Object.FindFirstObjectByType<TimerManager>();
-        if (timer != null)
-            timer.enabled = false;
+public void OnMissionFailure()
+{
+    missionStarted = false;
+    targetBuilding = null;
 
-        // Show retry menu (Restart / Exit)
-        MissionCompleteUIManager.Instance.ShowFailureMenu();
-    }
+    var timer = Object.FindFirstObjectByType<TimerManager>();
+    if (timer != null)
+        timer.enabled = false;
+
+    MissionCompleteUIManager.Instance.ShowRewardPanel(); // Same reward panel
+}
 
  
     public void AddCreditAndLevel()
@@ -207,7 +218,7 @@ public class MissionManager : MonoBehaviour
         }
 
         // Hide success / failure menu
-        MissionCompleteUIManager.Instance.HideAllMenus();
+        MissionCompleteUIManager.Instance.HideRewardPanel();
 
         if (missionCompletePanel != null)
             missionCompletePanel.SetActive(false);
@@ -256,7 +267,7 @@ public class MissionManager : MonoBehaviour
             levelText.text = "Level: " + currentLevel;
 
         CreditManager.Instance.AddCredits(100);
-        MissionCompleteUIManager.Instance.HideAllMenus();  // Hide both success/failure menu
+        MissionCompleteUIManager.Instance.HideRewardPanel();  // Hide both success/failure menu
 
         RestartMission(); // Start a new round
     }
@@ -266,7 +277,7 @@ public class MissionManager : MonoBehaviour
         Debug.Log("[MissionManager] Exiting to main menu.");
 
         // Hide success/failure menu
-        MissionCompleteUIManager.Instance.HideAllMenus();
+        MissionCompleteUIManager.Instance.HideRewardPanel();
 
         if (missionText != null)
             missionText.gameObject.SetActive(false);

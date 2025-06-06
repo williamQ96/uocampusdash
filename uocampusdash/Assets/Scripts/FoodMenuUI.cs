@@ -95,6 +95,12 @@ public class FoodMenuUI : MonoBehaviour
 
     public void ShowMenu()
     {
+        if (menuForceClosed)
+        {
+            Debug.Log("🚫 Menu was force-closed. Skip ShowMenu.");
+            return;
+        }
+
         SetMenuActive(true);
         currentIndex = 0;
         currentMenu = regularMenu;
@@ -102,6 +108,7 @@ public class FoodMenuUI : MonoBehaviour
         feedbackText.text = "";
         feedbackText.gameObject.SetActive(false);
     }
+
 
     public void HideMenu()
     {
@@ -221,8 +228,14 @@ public class FoodMenuUI : MonoBehaviour
             feedbackText.gameObject.SetActive(false);
         }
         Debug.Log("✅ ForceCloseMenu called. Deactivating FoodMenuPanel");
-
     }
+
+    public void ResetForceClose()
+    {
+        menuForceClosed = false;
+    }
+
+
 }
 
 

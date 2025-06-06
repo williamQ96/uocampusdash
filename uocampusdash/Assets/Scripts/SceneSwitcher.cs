@@ -1,369 +1,3 @@
-// // using UnityEngine;
-// // using UnityEngine.SceneManagement;
-// // using System.Collections;
-// // using UnityEngine.InputSystem;
-// // using Cinemachine;
-// // using StarterAssets;
-
-// // public class SceneSwitcher : MonoBehaviour
-// // {
-// //     public GameObject roomInterior;
-// //     public GameObject buildingExterior;
-// //     public Transform roomSpawnPoint;
-// //     public MissionManager missionManager;
-// //     public FoodMenuUI foodMenuUI;
-
-// //     public GameObject playerPrefab;
-// //     public Transform campusSpawnPoint;
-
-// //     private GameObject player;
-
-// //     public string museumSceneName = "Museum";
-// //     public string campusSceneName = "campus";
-
-// //     private bool canEnter = false;
-
-// //     void Start()
-// //     {
-// //         player = GameObject.FindGameObjectWithTag("Player");
-
-// //         if (roomInterior != null && roomSpawnPoint == null)
-// //         {
-// //             var layout = roomInterior.GetComponent<RestaurantLayout>();
-// //             if (layout != null)
-// //                 roomSpawnPoint = layout.playerSpawnPoint;
-// //         }
-
-// //         if (missionManager == null)
-// //             missionManager = FindObjectOfType<MissionManager>();
-
-// //         if (foodMenuUI == null)
-// //             foodMenuUI = FindObjectOfType<FoodMenuUI>();
-// //     }
-
-// //     void Update()
-// //     {
-// //         if (canEnter && Input.GetKeyDown(KeyCode.E))
-// //         {
-// //             if (missionManager == null || missionManager.IsMissionActive)
-// //             {
-// //                 EnterRestaurant();
-// //             }
-// //         }
-
-// //         if (PlayerReturnPosition.HasTeleportedIntoRoom && Input.GetKeyDown(KeyCode.H))
-// //         {
-// //             ExitRestaurant();
-// //             foodMenuUI?.ForceCloseMenu();
-// //         }
-
-// //         if (canEnter && Input.GetKeyDown(KeyCode.B))
-// //         {
-// //             // Save position before leaving campus
-// //             PlayerReturnPosition.LastOutsidePosition = player.transform.position;
-// //             PlayerReturnPosition.LastOutsideRotation = player.transform.rotation;
-// //             PlayerReturnPosition.HasRecordedOutside = true;
-
-// //             SceneManager.LoadScene(museumSceneName);
-// //         }
-// //     }
-
-// //     void EnterRestaurant()
-// //     {
-// //         if (player == null) return;
-
-// //         if (roomInterior != null && roomSpawnPoint == null)
-// //         {
-// //             var layout = roomInterior.GetComponent<RestaurantLayout>();
-// //             if (layout != null)
-// //                 roomSpawnPoint = layout.playerSpawnPoint;
-// //         }
-
-// //         if (roomSpawnPoint == null)
-// //         {
-// //             Debug.LogError("❌ No spawn point in Restaurant.");
-// //             return;
-// //         }
-
-// //         PlayerReturnPosition.LastOutsidePosition = player.transform.position;
-// //         PlayerReturnPosition.LastOutsideRotation = player.transform.rotation;
-// //         PlayerReturnPosition.HasTeleportedIntoRoom = true;
-
-// //         roomInterior?.SetActive(true);
-// //         buildingExterior?.SetActive(false);
-
-// //         var controller = player.GetComponent<CharacterController>();
-// //         if (controller != null)
-// //         {
-// //             controller.enabled = false;
-// //             player.transform.position = roomSpawnPoint.position + Vector3.up * 0.1f;
-// //             controller.enabled = true;
-// //         }
-
-// //         StartCoroutine(ShowFoodMenuDelayed());
-// //         FindAnyObjectByType<TimerManager>()?.PauseTimer();
-// //     }
-
-// //     void ExitRestaurant()
-// //     {
-// //         if (player == null) return;
-
-// //         roomInterior?.SetActive(false);
-// //         buildingExterior?.SetActive(true);
-
-// //         var controller = player.GetComponent<CharacterController>();
-// //         if (controller != null)
-// //         {
-// //             controller.enabled = false;
-// //             player.transform.position = PlayerReturnPosition.LastOutsidePosition;
-// //             player.transform.rotation = PlayerReturnPosition.LastOutsideRotation;
-// //             controller.enabled = true;
-// //         }
-
-// //         PlayerReturnPosition.HasTeleportedIntoRoom = false;
-// //         FindAnyObjectByType<TimerManager>()?.ResumeTimer();
-// //     }
-
-// //     IEnumerator ShowFoodMenuDelayed()
-// //     {
-// //         yield return new WaitForSeconds(1f);
-// //         foodMenuUI?.ShowMenu();
-// //     }
-
-// //     void OnTriggerEnter(Collider other)
-// //     {
-// //         if (other.CompareTag("Player"))
-// //         {
-// //             canEnter = true;
-// //             player = other.gameObject;
-// //         }
-// //     }
-
-// //     void OnTriggerExit(Collider other)
-// //     {
-// //         if (other.CompareTag("Player"))
-// //         {
-// //             canEnter = false;
-// //             if (!PlayerReturnPosition.HasTeleportedIntoRoom)
-// //                 player = null;
-// //         }
-// //     }
-// // }
-
-
-
-// // ✅ 完整整合版 SceneSwitcher.cs
-// using UnityEngine;
-// using UnityEngine.SceneManagement;
-// using System.Collections;
-// using UnityEngine.InputSystem;
-// using Cinemachine;
-// using StarterAssets;
-
-// public class SceneSwitcher : MonoBehaviour
-// {
-//     public GameObject roomInterior;
-//     public GameObject buildingExterior;
-//     public Transform roomSpawnPoint;
-//     public MissionManager missionManager;
-//     public FoodMenuUI foodMenuUI;
-
-//     public GameObject playerPrefab;
-//     public Transform campusSpawnPoint;
-
-//     private GameObject player;
-
-//     public string museumSceneName = "Museum";
-//     public string campusSceneName = "campus";
-
-//     private bool canEnter = false;
-
-//     void Start()
-//     {
-//         player = GameObject.FindGameObjectWithTag("Player");
-
-//         if (roomInterior != null && roomSpawnPoint == null)
-//         {
-//             var layout = roomInterior.GetComponent<RestaurantLayout>();
-//             if (layout != null)
-//                 roomSpawnPoint = layout.playerSpawnPoint;
-//         }
-
-//         if (missionManager == null)
-//             missionManager = FindObjectOfType<MissionManager>();
-
-//         if (foodMenuUI == null)
-//             foodMenuUI = FindObjectOfType<FoodMenuUI>();
-//     }
-
-//     void Update()
-//     {
-//         if (canEnter && Input.GetKeyDown(KeyCode.E))
-//         {
-//             if (missionManager == null || missionManager.IsMissionActive)
-//             {
-//                 EnterRestaurant();
-//             }
-//         }
-
-//         if (PlayerReturnPosition.HasTeleportedIntoRoom && Input.GetKeyDown(KeyCode.H))
-//         {
-//             ExitRestaurant();
-//             foodMenuUI?.ForceCloseMenu();
-//         }
-
-//         if (canEnter && Input.GetKeyDown(KeyCode.B))
-//         {
-//             PlayerReturnPosition.LastOutsidePosition = player.transform.position;
-//             PlayerReturnPosition.LastOutsideRotation = player.transform.rotation;
-//             PlayerReturnPosition.HasRecordedOutside = true;
-
-//             DontDestroyOnLoad(player);
-//             SceneManager.sceneLoaded += OnSceneLoaded;
-//             SceneManager.LoadScene(museumSceneName);
-//         }
-
-//         if (SceneManager.GetActiveScene().name == museumSceneName && Input.GetKeyDown(KeyCode.H))
-//         {
-//             SceneManager.sceneLoaded += OnSceneLoaded;
-//             SceneManager.LoadScene(campusSceneName);
-//         }
-//     }
-
-//     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-//     {
-//         if (scene.name == campusSceneName)
-//         {
-//             RemoveOldPlayers();
-
-//             if (playerPrefab != null && campusSpawnPoint != null)
-//             {
-//                 player = Instantiate(playerPrefab, campusSpawnPoint.position, Quaternion.identity);
-//                 player.name = "Player";
-//             }
-//         }
-
-//         if (player != null)
-//         {
-//             var controller = player.GetComponent<CharacterController>();
-//             if (controller != null) controller.enabled = true;
-
-//             var input = player.GetComponent<PlayerInput>();
-//             if (input != null) {
-//                 input.enabled = false;
-//                 input.enabled = true;
-//             }
-
-//             var vcam = FindObjectOfType<CinemachineVirtualCamera>();
-//             var camTarget = player.transform.Find("PlayerCameraRoot");
-//             if (vcam != null && camTarget != null)
-//             {
-//                 vcam.Follow = camTarget;
-//                 vcam.LookAt = camTarget;
-//             }
-
-//             Cursor.lockState = CursorLockMode.Locked;
-//             Cursor.visible = false;
-//             StarterAssetsInputs.inputEnabled = true;
-//         }
-
-//         PlayerReturnPosition.HasTeleportedIntoRoom = false;
-//         SceneManager.sceneLoaded -= OnSceneLoaded;
-//     }
-
-//     void RemoveOldPlayers()
-//     {
-//         var oldPlayers = GameObject.FindGameObjectsWithTag("Player");
-//         foreach (var p in oldPlayers)
-//         {
-//             Destroy(p);
-//         }
-//     }
-
-//     void EnterRestaurant()
-//     {
-//         if (player == null) return;
-
-//         if (roomInterior != null && roomSpawnPoint == null)
-//         {
-//             var layout = roomInterior.GetComponent<RestaurantLayout>();
-//             if (layout != null)
-//                 roomSpawnPoint = layout.playerSpawnPoint;
-//         }
-
-//         if (roomSpawnPoint == null)
-//         {
-//             Debug.LogError("❌ No spawn point in Restaurant.");
-//             return;
-//         }
-
-//         PlayerReturnPosition.LastOutsidePosition = player.transform.position;
-//         PlayerReturnPosition.LastOutsideRotation = player.transform.rotation;
-//         PlayerReturnPosition.HasTeleportedIntoRoom = true;
-
-//         roomInterior?.SetActive(true);
-//         buildingExterior?.SetActive(false);
-
-//         var controller = player.GetComponent<CharacterController>();
-//         if (controller != null)
-//         {
-//             controller.enabled = false;
-//             player.transform.position = roomSpawnPoint.position + Vector3.up * 0.1f;
-//             controller.enabled = true;
-//         }
-
-//         StartCoroutine(ShowFoodMenuDelayed());
-//         FindAnyObjectByType<TimerManager>()?.PauseTimer();
-//     }
-
-//     void ExitRestaurant()
-//     {
-//         if (player == null) return;
-
-//         roomInterior?.SetActive(false);
-//         buildingExterior?.SetActive(true);
-
-//         var controller = player.GetComponent<CharacterController>();
-//         if (controller != null)
-//         {
-//             controller.enabled = false;
-//             player.transform.position = PlayerReturnPosition.LastOutsidePosition;
-//             player.transform.rotation = PlayerReturnPosition.LastOutsideRotation;
-//             controller.enabled = true;
-//         }
-
-//         PlayerReturnPosition.HasTeleportedIntoRoom = false;
-//         FindAnyObjectByType<TimerManager>()?.ResumeTimer();
-//     }
-
-//     IEnumerator ShowFoodMenuDelayed()
-//     {
-//         yield return new WaitForSeconds(1f);
-//         foodMenuUI?.ShowMenu();
-//     }
-
-//     void OnTriggerEnter(Collider other)
-//     {
-//         if (other.CompareTag("Player"))
-//         {
-//             canEnter = true;
-//             player = other.gameObject;
-//         }
-//     }
-
-//     void OnTriggerExit(Collider other)
-//     {
-//         if (other.CompareTag("Player"))
-//         {
-//             canEnter = false;
-//             if (!PlayerReturnPosition.HasTeleportedIntoRoom)
-//                 player = null;
-//         }
-//     }
-// }
-
-
-
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
@@ -373,32 +7,33 @@ using StarterAssets;
 
 public class SceneSwitcher : MonoBehaviour
 {
+    // References for restaurant and exterior building
     public GameObject roomInterior;
     public GameObject buildingExterior;
-    public Transform roomSpawnPoint;
+    public Transform roomSpawnPoint; // Entry point inside the restaurant
+
+    // UI and mission references
     public MissionManager missionManager;
     public FoodMenuUI foodMenuUI;
 
+    // Player spawning
     public GameObject playerPrefab;
     public Transform campusSpawnPoint;
 
     private GameObject player;
 
+    // Scene names
     public string museumSceneName = "Museum";
     public string campusSceneName = "campus";
 
-    private bool canEnter = false;
+    private bool canEnter = false; // Player is within trigger area
 
     void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player");
 
-        if (roomInterior != null && roomSpawnPoint == null)
-        {
-            var layout = roomInterior.GetComponent<RestaurantLayout>();
-            if (layout != null)
-                roomSpawnPoint = layout.playerSpawnPoint;
-        }
+        // Delay to allow other Start() methods (like RestaurantLayout) to complete
+        StartCoroutine(InitializeSpawnPointDelayed());
 
         if (missionManager == null)
             missionManager = FindObjectOfType<MissionManager>();
@@ -407,8 +42,15 @@ public class SceneSwitcher : MonoBehaviour
             foodMenuUI = FindObjectOfType<FoodMenuUI>();
     }
 
+    IEnumerator InitializeSpawnPointDelayed()
+    {
+        yield return new WaitForSeconds(0.1f);
+        EnsureSpawnPoint(); // Ensures spawn point is valid after layout builds
+    }
+
     void Update()
     {
+        // Press E to enter restaurant if allowed
         if (canEnter && Input.GetKeyDown(KeyCode.E))
         {
             if (missionManager == null || missionManager.IsMissionActive)
@@ -417,12 +59,24 @@ public class SceneSwitcher : MonoBehaviour
             }
         }
 
-        if (PlayerReturnPosition.HasTeleportedIntoRoom && Input.GetKeyDown(KeyCode.H))
+        // Press H anytime to close food menu and optionally exit restaurant or return to campus
+        if (Input.GetKeyDown(KeyCode.H))
         {
-            ExitRestaurant();
             foodMenuUI?.ForceCloseMenu();
+
+            if (PlayerReturnPosition.HasTeleportedIntoRoom)
+            {
+                ExitRestaurant();
+                foodMenuUI.ForceCloseMenu();
+            }
+            else if (SceneManager.GetActiveScene().name == museumSceneName)
+            {
+                SceneManager.sceneLoaded += OnSceneLoaded;
+                SceneManager.LoadScene(campusSceneName);
+            }
         }
 
+        // Press B to enter museum (record return position)
         if (canEnter && Input.GetKeyDown(KeyCode.B))
         {
             PlayerReturnPosition.LastOutsidePosition = player.transform.position;
@@ -432,36 +86,11 @@ public class SceneSwitcher : MonoBehaviour
             SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.LoadScene(museumSceneName);
         }
-
-        if (SceneManager.GetActiveScene().name == museumSceneName && Input.GetKeyDown(KeyCode.H))
-        {
-            SceneManager.sceneLoaded += OnSceneLoaded;
-            SceneManager.LoadScene(campusSceneName);
-        }
     }
 
     void EnterRestaurant()
     {
         if (player == null) return;
-
-        // ✅ 確保取得最新 spawnPoint
-        bool wasInactive = !roomInterior.activeSelf;
-        if (wasInactive) roomInterior.SetActive(true);
-
-        if (roomSpawnPoint == null)
-        {
-            var layout = roomInterior.GetComponent<RestaurantLayout>();
-            if (layout != null)
-                roomSpawnPoint = layout.playerSpawnPoint;
-        }
-
-        if (roomSpawnPoint == null)
-        {
-            Debug.LogError("❌ No spawn point in Restaurant.");
-            return;
-        }
-
-        if (wasInactive) roomInterior.SetActive(false);
 
         PlayerReturnPosition.LastOutsidePosition = player.transform.position;
         PlayerReturnPosition.LastOutsideRotation = player.transform.rotation;
@@ -474,21 +103,27 @@ public class SceneSwitcher : MonoBehaviour
         if (controller != null)
         {
             controller.enabled = false;
-            player.transform.position = roomSpawnPoint.position + Vector3.up * 0.1f;
+            player.transform.position = new Vector3(0, 10.1f, 0);
             controller.enabled = true;
         }
 
-        StartCoroutine(ShowFoodMenuDelayed());
+        foodMenuUI.ResetForceClose(); // Reset menu force-close flag
+        StartCoroutine(ShowFoodMenuDelayed()); // Always trigger menu
         FindAnyObjectByType<TimerManager>()?.PauseTimer();
     }
+
+
+
 
     void ExitRestaurant()
     {
         if (player == null) return;
 
+        // Reactivate exterior
         roomInterior?.SetActive(false);
         buildingExterior?.SetActive(true);
 
+        // Move player back to last recorded outside position
         var controller = player.GetComponent<CharacterController>();
         if (controller != null)
         {
@@ -506,6 +141,7 @@ public class SceneSwitcher : MonoBehaviour
     {
         if (scene.name == campusSceneName)
         {
+            // Destroy old player if needed
             GameObject oldPlayer = GameObject.FindGameObjectWithTag("Player");
             if (oldPlayer != null) Destroy(oldPlayer);
 
@@ -515,6 +151,7 @@ public class SceneSwitcher : MonoBehaviour
                 return;
             }
 
+            // Spawn new player
             Vector3 spawn = campusSpawnPoint ? campusSpawnPoint.position : Vector3.zero;
             player = Instantiate(playerPrefab, spawn, Quaternion.identity);
             player.name = "Player";
@@ -575,6 +212,24 @@ public class SceneSwitcher : MonoBehaviour
             canEnter = false;
             if (!PlayerReturnPosition.HasTeleportedIntoRoom)
                 player = null;
+        }
+    }
+
+    // Ensures the room spawn point is retrieved from RestaurantLayout if needed
+    void EnsureSpawnPoint()
+    {
+        if (roomSpawnPoint == null && roomInterior != null)
+        {
+            var layout = roomInterior.GetComponent<RestaurantLayout>();
+            if (layout != null && layout.playerSpawnPoint != null)
+            {
+                roomSpawnPoint = layout.playerSpawnPoint;
+                Debug.Log("✅ Spawn point initialized at " + roomSpawnPoint.position);
+            }
+            else
+            {
+                Debug.LogWarning("❌ RestaurantLayout or playerSpawnPoint not ready.");
+            }
         }
     }
 }

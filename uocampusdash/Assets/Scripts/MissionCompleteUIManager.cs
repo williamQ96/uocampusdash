@@ -2,18 +2,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-
 public class MissionCompleteUIManager : MonoBehaviour
 {
     public static MissionCompleteUIManager Instance;
 
-    public GameObject successMenu;
-    public GameObject failureMenu;
+    public GameObject rewardPanel;
 
     private Button[] currentButtons;
     private int selectedIndex = 0;
-
-    private GameUIManager gameUI;
 
     void Awake()
     {
@@ -21,8 +17,12 @@ public class MissionCompleteUIManager : MonoBehaviour
             Instance = this;
         else
             Destroy(gameObject);
+    }
 
-        gameUI = FindObjectOfType<GameUIManager>();
+    void OnEnable()
+    {
+        selectedIndex = 0;
+        UpdateButtonVisuals();
     }
 
     void Update()
@@ -55,54 +55,19 @@ public class MissionCompleteUIManager : MonoBehaviour
         }
     }
 
-    public void ShowSuccessMenu()
+    public void ShowRewardPanel()
     {
-        successMenu.SetActive(true);
-        failureMenu.SetActive(false);
-
-        currentButtons = successMenu.GetComponentsInChildren<Button>();
+        gameObject.SetActive(true);
+        rewardPanel.SetActive(true);
+        currentButtons = rewardPanel.GetComponentsInChildren<Button>();
         selectedIndex = 0;
         UpdateButtonVisuals();
-        gameObject.SetActive(true);
     }
 
-    public void ShowFailureMenu()
+    public void HideRewardPanel()
     {
-        Debug.Log("[UI] Showing Success Menu ✅");
-        successMenu.SetActive(false);
-        failureMenu.SetActive(true);
-        currentButtons = failureMenu.GetComponentsInChildren<Button>();
-        selectedIndex = 0;
-        UpdateButtonVisuals();
-        gameObject.SetActive(true);
-    }
-
-    public void HideAllMenus()
-    {
-        successMenu.SetActive(false);
-        failureMenu.SetActive(false);
-        currentButtons = null;
+        rewardPanel.SetActive(false);
         gameObject.SetActive(false);
-    }
-
-    public void OnSuccessContinue()
-    {
-        HideAllMenus();
-        MissionManager.Instance.ContinueMission();
-    }
-
-    public void OnExitToMainMenu()
-    {
-        HideAllMenus();
-        if (gameUI != null)
-            gameUI.ShowMainMenu(); 
-        else
-            Debug.LogError("GameUIManager not found.");
-    }
-
-    public void OnFailureRestart()
-    {
-        HideAllMenus();
-        MissionManager.Instance.RestartMission(); 
+        currentButtons = null;
     }
 }
