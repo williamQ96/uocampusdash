@@ -56,4 +56,4 @@ This game was built as part of a term project, but it’s more than that—it’
 
 ---
 
-🦆 *Quack ya later, and good luck on your finals!* 🎓💨
+🦆 *Once a Duck, Always a duck* 🎓💨
