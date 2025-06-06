@@ -1,60 +1,59 @@
-# Campus Dash: UO
+# 🎓 Campus Dash: UO 🚀  
+*A rogue-like college sprinting sim where being late is just part of the experience!*
 
-A 3D parkour-style free-running game set on a stylized version of the University of Oregon campus. This Unity-based game challenges players to complete dynamic quests and explore a vibrant open world filled with movement-based challenges and interactive upgrades.
+Welcome to **Campus Dash: UO**, the ultimate rogue-like campus dashing game where you play as a perpetually late (but eternally optimistic) student frantically racing across the University of Oregon! ⏰🏃‍♂️💨
 
-## 🎮 Game Overview
+---
 
-**Campus Dash: UO** puts you in the shoes of a parkour-capable student navigating campus buildings under time pressure. Accept randomized delivery quests, collect coins along the way, and upgrade your abilities to enhance traversal.
+## 🕹️ Game Features
 
-- **Genre:** 3D Free-running / Parkour
-- **Setting:** University of Oregon (stylized)
-- **Engine:** Unity
-- **Platform:** WebGL / PC
+- 🏫 **Late to class... again?!**  
+  Embark on randomized delivery quests where you *dash* from building to building before the timer runs out. Will you make it to your lecture on time? Probably not. But hey, there’s always a next try!
 
-## 🔁 Gameplay Loop & Progression
+- 💸 **Earn (and burn) that sweet campus credit**  
+  Make it on time? Get credit. Miss it? Meh, not the end of the world. Try again, get faster, jump higher, sprint longer.  
+  Upgrade like a caffeinated squirrel before midterms.
 
-1. Spawn at a quest point.
-2. Get a randomized quest: reach Building B from A under a time limit.
-3. Traverse using sprinting, parkour, and tools like hooks and portals.
-4. Collect coins to unlock:
-   - Speed & stamina upgrades
-   - Grapple hook
-   - Mini-map enhancements
-   - New character skins
+- 🍔 **Student dining hall perks**  
+  Yes, you can actually *spend* your credit on food. 🍟 Because what's a college sim without mysterious meatloaf and suspicious sushi?
 
-Players can roam freely, explore biomes, and choose when and how to progress.
+- 🖼️ **Art museum collectibles**  
+  Discover hidden art collectibles in the campus museum while exploring—bonus XP for pausing your dash to *appreciate culture™*.
 
-## 🗺️ Map System
+- 🧭 **Get familiar with the UO campus**  
+  Whether you're a current Duck or a soon-to-be fledgling, our stylized campus layout will teach you shortcuts, back alleys, and questionable roof routes your real tour guide *definitely* skipped.
 
-- Players must memorize paths to simulate real student experience.
-- Map boards appear across campus.
-- Coins unlock:
-  - **Portable Map**
-  - **Minimap Overlay**
+---
 
-## 👥 NPCs & Realism
+## 🤓 Why You'll Love It
 
-- **Instructor NPCs** offer optional side quests.
-- **Student NPCs** roam for added realism.
-- A **Tour Mode** may allow free exploration—ideal for school promotion.
+- Roguelike replayability! Every mission is a surprise. 🎁  
+- Parkour-style campus traversal with no tuition required.  
+- A game that actually helps you learn your way around campus! (Yes, this is educational. Kind of.)
 
-## 🛠️ Proof-of-Concept Features
+---
 
-Target completion by **April 28**:
+## 🚧 How to Play
 
-- ✅ Free-running controller (jump, sprint)
-- ✅ Quest assignment with timers
-- ✅ Static coin pickups & UI tracking
-- ✅ Basic store UI with upgrades (speed, hook, etc.)
+> 🖱️ **Controls:** WASD to move, Space to jump, Shift to sprint.  
+> 💡 Tip: Upgrades make you faster. Like, a *lot* faster.  
 
-## 🎨 Art & Sound
+---
 
-- **Visual Style:** Bright, clean-line realism (inspired by Mirror's Edge, Jet Set Radio)
-- **SFX:** Running, coins, upgrades
-- **Music:** Upbeat, dynamic tracks to match movement intensity
+## 📦 Built With
 
-## 🧑‍💻 Team
+- Unity 3D 🧩  
+- Love for college chaos 💚  
+- Too much caffeine ☕  
 
-- **William Qiu** – Product Owner & Gameplay Designer
-- **Jou-chi Huang** – Asset Manager & Sound Designer
+---
 
+## 👀 Final Words
+
+This game was built as part of a term project, but it’s more than that—it’s a celebration of lateness, exploration, and the chaotic spirit of college life. Whether you're dashing to Lawrence Hall or just vibing near the EMU, remember:  
+
+> It’s not about being on time. It’s about how cool you look when you're *almost* on time. 😎📚
+
+---
+
+🦆 *Once a Duck, Always a duck* 🎓💨
